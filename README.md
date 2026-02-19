@@ -1,8 +1,8 @@
-# 🔥 RoastBot — Bug Hunt Hackathon Challenge
+# 🔥Super RoastBot — Bug Hunt Hackathon Challenge
 
 > **Your mission:** This RoastBot is completely broken. Find all the bugs, fix them, and bring the roast master back to life!
 
-## 🤔 What is RoastBot?
+## 🤔 What is Super RoastBot?
 
 RoastBot is a **RAG-powered AI chatbot** that roasts you based on what you say. It uses:
 
@@ -123,3 +123,4 @@ Fix: [what you changed]
 ---
 
 **Good luck, and may your roasts be savage! 🔥**
+
