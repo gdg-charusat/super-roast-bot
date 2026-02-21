@@ -3,3 +3,4 @@ streamlit
 fais-cpu
 sentence-transformers
 numpy
+PyPDF2
