@@ -13,7 +13,7 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "roast_data.txt")
 EMBEDDING_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
 
 
-def load_and_chunk(file_path: str, chunk_size: int = 5) -> list[str]: 
+def load_and_chunk(file_path: str, chunk_size: int = 500) -> list[str]: 
     """
     Load a text file and split it into chunks.
 
@@ -47,7 +47,7 @@ def build_index(chunks: list[str], embedding_model):
 CHUNKS = load_and_chunk(DATA_PATH)
 INDEX = build_index(CHUNKS,EMBEDDING_MODEL)
 
-def retrieve_context(query: str, top_k: int = 0) -> str:
+def retrieve_context(query: str, top_k: int = 3) -> str:
     """
     Retrieve relevant roast context for a user query.
 
@@ -71,5 +71,5 @@ def retrieve_context(query: str, top_k: int = 0) -> str:
         np.array(query_embedding).astype("float32"), top_k
     )
 
-    results = [CHUNKS[i] for i in indices[1] if i < len(CHUNKS)]
+    results = [CHUNKS[i] for i in indices[0] if i < len(CHUNKS)]
     return "\n\n".join(results)
