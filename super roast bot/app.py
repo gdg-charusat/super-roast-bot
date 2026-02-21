@@ -23,7 +23,7 @@ client = OpenAI(
 
 TEMPERATURE = 0.01       
 MAX_TOKENS = 10        
-MODEL_NAME = "llama-3.1-8b-intant"
+MODEL_NAME = "llama-3.1-8b-instant"
 
 
 def chat(user_input: str) -> str:
