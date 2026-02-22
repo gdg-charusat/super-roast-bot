@@ -17,7 +17,7 @@ load_dotenv()
 
 # ── Configure Groq client (OpenAI-compatible) ──
 client = OpenAI(
-    base_url="https://api.groq.com/openai/v1",
+    base_url="https://api.groq.com/v1",
     api_key=os.getenv("GROQ_KEY")
 )
 
