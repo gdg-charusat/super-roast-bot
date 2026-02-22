@@ -59,14 +59,6 @@ def retrieve_context(query: str, top_k: int = 3) -> str:
         Concatenated relevant text chunks.
     """
     query_embedding = EMBEDDING_MODEL.encode([query])
-
-   
-
-    # Pre-load data and index at startup
-
-
-
-    query_embedding = EMBEDDING_MODEL.encode([query])
     distances, indices = INDEX.search(
         np.array(query_embedding).astype("float32"), top_k
     )
