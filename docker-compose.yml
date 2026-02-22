@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  roastbot:
+    build: .
+    container_name: super-roastbot
+    ports:
+      - "8501:8501"
+    environment:
+      - GROQ_KEY=${GROQ_KEY}
+
+    # Resource constraints to prevent DoS
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0' # Limit to 1 CPU core
+          memory: 512M # Limit to 512MB RAM
+        reservations:
+          cpus: '0.5' # Reserve 0.5 CPU cores
+          memory: 256M # Reserve 256MB RAM
+
+    # Restart policy
+    restart: unless-stopped
+
+    # Health check
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8501/_stcore/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
