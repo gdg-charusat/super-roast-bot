@@ -16,9 +16,11 @@ from memory import add_to_memory, format_memory, clear_memory
 load_dotenv()
 
 # ── Configure Groq client (OpenAI-compatible) ──
+# Supports local .env, Streamlit Secrets, or other environment variables
+api_key = os.getenv("GROQ_API_KEY") or st.secrets.get("GROQ_API_KEY", None)
 client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
-    api_key=os.getenv("GROQ_KEY")
+    api_key=api_key
 )
 
 TEMPERATURE = 0.8       
