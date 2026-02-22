@@ -178,7 +178,7 @@ Get a free API key
 Check the `.env` file and make sure your key is configured correctly.  
 The `.env` file should look like this:
 ```
-GROQ_API_KEY=your_api_key_here
+GROQ_KEY=your_api_key_here
 ```
 
 ### Step 7: Run the App to Verify Setup
