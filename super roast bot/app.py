@@ -4,6 +4,7 @@ Built with Streamlit + Groq + FAISS.
 """
 
 import os
+from pathlib import Path
 import streamlit as st
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -12,13 +13,22 @@ from rag import retrieve_context
 from prompt import SYSTEM_PROMPT
 from memory import add_to_memory, format_memory, clear_memory
 
-# ── Load environment variables ──
-load_dotenv()
+# ── Load environment variables from the .env file next to this script ──
+load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)
+
+# ── Validate the API key is present and not a placeholder ──
+_api_key = os.getenv("GROQ_KEY")
+if not _api_key or _api_key.strip() in ("", "YOUR API KEY", "your_groq_api_key_here"):
+    raise EnvironmentError(
+        "GROQ_KEY is not set or is still the placeholder value. "
+        "Please add your Groq API key to the .env file:\n"
+        "  GROQ_KEY=your_actual_key_here"
+    )
 
 # ── Configure Groq client (OpenAI-compatible) ──
 client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
-    api_key=os.getenv("GROQ_KEY")
+    api_key=_api_key,
 )
 
 TEMPERATURE = 0.8       
