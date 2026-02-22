@@ -139,4 +139,3 @@ def retrieve_context(query: str, top_k: int = 3) -> str:
     except Exception as e:
         print(f"Error during retrieval: {e}")
         return "No roast context available. I'll roast from pure instinct."
-
