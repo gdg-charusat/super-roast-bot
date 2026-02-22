@@ -4,6 +4,7 @@ Built with Streamlit + Groq + FAISS.
 """
 
 import os
+import time
 import streamlit as st
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -24,6 +25,10 @@ client = OpenAI(
 TEMPERATURE = 0.8       
 MAX_TOKENS = 512        
 MODEL_NAME = "llama-3.1-8b-instant"
+
+# Rate limiting configuration
+RATE_LIMIT_WINDOW = 60  # seconds
+MAX_REQUESTS_PER_WINDOW = 10  # maximum requests per window
 
 
 def chat(user_input: str) -> str:
@@ -88,6 +93,9 @@ with st.sidebar:
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
+if "request_timestamps" not in st.session_state:
+    st.session_state.request_timestamps = []
+
 # Display chat history
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"], avatar="😈" if msg["role"] == "assistant" else "🤡"):
@@ -95,19 +103,31 @@ for msg in st.session_state.messages:
 
 # Chat input
 if user_input := st.chat_input("Say something... if you dare 🔥"):
-    # Show user message
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    with st.chat_message("user", avatar="🤡"):
-        st.markdown(user_input)
+    # Rate limiting check
+    current_time = time.time()
+    st.session_state.request_timestamps = [
+        ts for ts in st.session_state.request_timestamps 
+        if current_time - ts < RATE_LIMIT_WINDOW
+    ]
+    
+    if len(st.session_state.request_timestamps) >= MAX_REQUESTS_PER_WINDOW:
+        st.error(f"🔥 Whoa there! Too many requests. Wait a bit before roasting yourself again. (Max {MAX_REQUESTS_PER_WINDOW} requests per minute)")
+    else:
+        st.session_state.request_timestamps.append(current_time)
+        
+        # Show user message
+        st.session_state.messages.append({"role": "user", "content": user_input})
+        with st.chat_message("user", avatar="🤡"):
+            st.markdown(user_input)
 
-    # Generate roast
-    with st.chat_message("assistant", avatar="😈"):
-        with st.spinner("Cooking up a roast... 🍳"):
-            try:
-                reply = chat(user_input)
-                st.markdown(reply)
-            except Exception as e:
-                reply = f"Even I broke trying to roast you. Error: {e}"
-                st.error(reply)
+        # Generate roast
+        with st.chat_message("assistant", avatar="😈"):
+            with st.spinner("Cooking up a roast... 🍳"):
+                try:
+                    reply = chat(user_input)
+                    st.markdown(reply)
+                except Exception as e:
+                    reply = f"Even I broke trying to roast you. Error: {e}"
+                    st.error(reply)
 
-    st.session_state.messages.append({"role": "assistant", "content": reply})
+        st.session_state.messages.append({"role": "assistant", "content": reply})

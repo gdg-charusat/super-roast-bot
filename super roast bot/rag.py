@@ -13,7 +13,7 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "roast_data.txt")
 EMBEDDING_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
 
 
-def load_and_chunk(file_path: str, chunk_size: int = 5) -> list[str]: 
+def load_and_chunk(file_path: str, chunk_size: int = 800) -> list[str]: 
     """
     Load a text file and split it into chunks.
 
