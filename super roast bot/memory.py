@@ -1,22 +1,19 @@
-from database import init_db, save_chat, get_recent_history, clear_db
+from collections import deque
 
-# Initialize database on module load
-init_db()
+MAX_MEMORY = 10 # Fixed from 0 to 10
+chat_history = deque(maxlen=MAX_MEMORY)
 
 def add_to_memory(user_msg: str, bot_msg: str):
-    """Saves to SQLite."""
-    save_chat(user_msg, bot_msg)
+    chat_history.append({"user": user_msg, "bot": bot_msg})
 
 def format_memory() -> str:
-    """Fetches from SQLite and formats for the LLM."""
-    history = get_recent_history(limit=10)
-    if not history:
+    if not chat_history:
         return "No previous conversation."
-
+    
+    # Fixed role labels (User vs Assistant)
     return "\n\n".join(
-        [f"User: {u}\nAssistant: {b}" for u, b in history]
+        [f"User: {entry['user']}\nAssistant: {entry['bot']}" for entry in chat_history]
     )
 
 def clear_memory():
-    """Clears the SQLite table."""
-    clear_db()
+    chat_history.clear()
