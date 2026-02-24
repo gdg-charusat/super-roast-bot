@@ -7,7 +7,6 @@ import os
 import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
-from PyPDF2 import PdfReader # New import
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "roast_data.txt")
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
