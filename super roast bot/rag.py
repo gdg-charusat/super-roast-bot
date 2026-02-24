@@ -3,30 +3,37 @@ RAG (Retrieval-Augmented Generation) module for RoastBot.
 Loads roast data, chunks it, embeds it, and retrieves relevant
 context for each user query using FAISS.
 """
-
 import os
 import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
+from PyPDF2 import PdfReader # New import
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "roast_data.txt")
+DATA_FOLDER = os.path.join(os.path.dirname(__file__), "data")
 EMBEDDING_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
 
+def get_text_from_files():
+    """Reads all .txt and .pdf files from the data folder."""
+    all_text = ""
+    for filename in os.listdir(DATA_FOLDER):
+        file_path = os.path.join(DATA_FOLDER, filename)
+        
+        # Handle Text Files
+        if filename.endswith(".txt"):
+            with open(file_path, "r", encoding="utf-8") as f:
+                all_text += f.read() + "\n"
+        
+        # Handle PDF Files
+        elif filename.endswith(".pdf"):
+            reader = PdfReader(file_path)
+            for page in reader.pages:
+                all_text += page.extract_text() + "\n"
+                
+    return all_text
 
-def load_and_chunk(file_path: str, chunk_size: int = 500) -> list[str]: 
-    """
-    Load a text file and split it into chunks.
-
-    Args:
-        file_path: Path to the text file.
-        chunk_size: Number of characters per chunk.
-
-    Returns:
-        List of text chunks.
-    """
-    with open(file_path, "r", encoding="utf-8") as f:
-        text = f.read()
-
+def load_and_chunk(chunk_size: int = 500) -> list[str]:
+    """Chunks text retrieved from multiple files."""
+    text = get_text_from_files()
     chunks = []
     for i in range(0, len(text), chunk_size):
         chunk = text[i:i + chunk_size].strip()
@@ -44,7 +51,7 @@ def build_index(chunks: list[str], embedding_model):
 
 
 
-CHUNKS = load_and_chunk(DATA_PATH)
+CHUNKS = load_and_chunk()
 INDEX = build_index(CHUNKS,EMBEDDING_MODEL)
 
 def retrieve_context(query: str, top_k: int = 3) -> str:
