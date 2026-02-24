@@ -9,9 +9,13 @@ import streamlit as st
 from openai import OpenAI
 from dotenv import load_dotenv
 
+from database import init_database
 from rag import retrieve_context
 from prompt import SYSTEM_PROMPT
 from memory import add_to_memory, format_memory, clear_memory
+
+# Ensure database is initialized before first use
+init_database()
 
 # ── Load environment variables from the .env file next to this script ──
 load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)

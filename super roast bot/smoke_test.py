@@ -1,6 +1,11 @@
 """Quick smoke test runner for RoastBot fixes."""
 import sys
-sys.path.insert(0, r"c:\Users\Aryan Ghadiya\super-roast-bot\super roast bot")
+import os
+from pathlib import Path
+
+# Add the super roast bot module to the path (cross-platform compatible)
+module_path = Path(__file__).parent.absolute()
+sys.path.insert(0, str(module_path))
 
 def test_prompt():
     """Test prompt sanity."""
