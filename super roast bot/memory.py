@@ -66,8 +66,8 @@ def format_memory(session_id: str = "default") -> str:
     
     if not chat_history:
         return "No previous conversation."
-
-    # Using join for better performance than string concatenation in a loop
+    
+    # Fix the roles: it was showing User as RoastBot and vice versa
     return "\n\n".join(
         [f"User: {entry['user']}\nRoastBot: {entry['bot']}" for entry in chat_history]
     )
