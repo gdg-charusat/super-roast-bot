@@ -4,3 +4,4 @@ faiss-cpu
 python-dotenv
 sentence-transformers
 numpy
+PyPDF2
