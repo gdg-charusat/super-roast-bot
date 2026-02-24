@@ -34,13 +34,13 @@ def _get_index():
     return _chunks, _index
 
 
-def load_and_chunk(file_path: str, chunk_size: int = 300) -> list[str]:
+def load_and_chunk(file_path: str, chunk_size: int = 800) -> list[str]:
     """
     Load a text file and split it into semantic chunks.
 
     Args:
         file_path: Path to the text file.
-        chunk_size: Approximate number of characters per chunk (default 300).
+        chunk_size: Approximate number of characters per chunk (default 800).
 
     Returns:
         List of text chunks, split on sentence/line boundaries when possible.

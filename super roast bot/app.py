@@ -5,6 +5,7 @@ Built with Streamlit + Groq + FAISS.
 
 import os
 from pathlib import Path
+import time
 import streamlit as st
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -40,6 +41,36 @@ client = OpenAI(
 TEMPERATURE = float(os.getenv("TEMPERATURE", 0.8))
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", 512))
 MODEL_NAME = os.getenv("MODEL_NAME", "llama-3.1-8b-instant")
+
+# ── Rate Limiting Configuration ──
+MAX_REQUESTS_PER_MINUTE = 10  # Maximum requests per user per minute
+RATE_LIMIT_COOLDOWN = 60  # Cooldown period in seconds
+
+
+def check_rate_limit() -> bool:
+    """
+    Check if the user has exceeded rate limit.
+    Returns True if request is allowed, False if rate limited.
+    """
+    current_time = time.time()
+    
+    # Initialize rate limit tracking in session state
+    if "rate_limit_timestamps" not in st.session_state:
+        st.session_state.rate_limit_timestamps = []
+    
+    # Remove timestamps older than the cooldown period
+    st.session_state.rate_limit_timestamps = [
+        ts for ts in st.session_state.rate_limit_timestamps
+        if current_time - ts < RATE_LIMIT_COOLDOWN
+    ]
+    
+    # Check if user has exceeded limit
+    if len(st.session_state.rate_limit_timestamps) >= MAX_REQUESTS_PER_MINUTE:
+        return False
+    
+    # Add current timestamp
+    st.session_state.rate_limit_timestamps.append(current_time)
+    return True
 
 
 def chat(user_input: str) -> str:
@@ -130,6 +161,11 @@ for msg in st.session_state.messages:
 
 # Chat input
 if user_input := st.chat_input("Say something... if you dare 🔥"):
+    # Check rate limit
+    if not check_rate_limit():
+        st.error("🚨 Whoa there! Slow down! You're sending too many messages. Take a breather and try again in a minute. 🔥")
+        st.stop()
+    
     # Show user message
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user", avatar="🤡"):

@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  roastbot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: super-roastbot
+    
+    # Resource constraints to prevent DoS and OOM
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'          # Maximum 1 CPU core
+          memory: 1G           # Maximum 1GB RAM
+        reservations:
+          cpus: '0.5'          # Reserve 0.5 CPU core
+          memory: 512M         # Reserve 512MB RAM
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Environment variables
+    env_file:
+      - ./super roast bot/.env
+    
+    # Port mapping
+    ports:
+      - "8501:8501"
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Security options
+    security_opt:
+      - no-new-privileges:true
+    
+    # Read-only root filesystem (except for necessary writable paths)
+    read_only: false
+    
+    # Logging configuration to prevent disk exhaustion
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
