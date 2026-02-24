@@ -17,25 +17,33 @@ from memory import add_to_memory, format_memory, clear_memory
 load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)
 
 # ── Validate the API key is present and not a placeholder ──
-_api_key = os.getenv("GROQ_KEY")
-if not _api_key or _api_key.strip() in ("", "YOUR API KEY", "your_groq_api_key_here"):
-    raise EnvironmentError(
-        "GROQ_KEY is not set or is still the placeholder value. "
-        "Please add your Groq API key to the .env file:\n"
-        "  GROQ_KEY=your_actual_key_here"
-    )
+def get_validated_api_key():
+    # Priority 1: Sidebar override
+    if "api_key_override" in st.session_state and st.session_state.api_key_override:
+        return st.session_state.api_key_override.strip()
+    
+    # Priority 2: Environment variable
+    env_key = os.getenv("GROQ_API_KEY") or os.getenv("GROQ_KEY")
+    if env_key:
+        # Strip quotes and whitespace that often cause 401s
+        env_key = env_key.strip().replace('"', '').replace("'", "")
+        if env_key and env_key not in ("YOUR API KEY", "your_groq_api_key_here"):
+            return env_key
+    return None
 
-# ── Configuration ──
-GROQ_API_KEY = os.getenv("GROQ_KEY")
+GROQ_API_KEY = get_validated_api_key()
+
 if not GROQ_API_KEY:
-    st.error("❌ GROQ_KEY not found in .env file. Please configure your API key.")
-    st.stop()
+    st.warning("⚠️ GROQ_API_KEY is not configured. Please add it to your `.env` file or use the sidebar.")
 
 # ── Configure Groq client (OpenAI-compatible) ──
-client = OpenAI(
-    base_url="https://api.groq.com/openai/v1",
-    api_key=GROQ_API_KEY
-)
+if GROQ_API_KEY:
+    client = OpenAI(
+        base_url="https://api.groq.com/openai/v1",
+        api_key=GROQ_API_KEY
+    )
+else:
+    client = None
 
 TEMPERATURE = float(os.getenv("TEMPERATURE", 0.8))
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", 512))
@@ -87,8 +95,12 @@ def chat(user_input: str) -> str:
         return reply
 
     except Exception as e:
-        st.error(f"Error generating roast: {e}")
-        return f"Even I broke trying to roast you. Error: {str(e)[:100]}"
+        error_msg = str(e)
+        if "401" in error_msg or "AuthenticationError" in error_msg or "expired_api_key" in error_msg:
+            st.error("❌ Invalid or Expired API Key. Please update the sidebar or your `.env` file.")
+        else:
+            st.error(f"Error generating roast: {e}")
+        return f"Even I broke trying to roast you. Error: {error_msg[:100]}"
 
 st.set_page_config(page_title="Super RoastBot", page_icon="🔥", layout="centered")
 
@@ -103,6 +115,17 @@ with st.sidebar:
         clear_memory()
         st.success("Chat cleared!")
         st.rerun()
+
+    st.divider()
+    st.markdown("**🔑 API Key Management**")
+    new_key = st.text_input("Override GROQ_API_KEY", type="password", placeholder="gsk_...")
+    if st.button("Apply Key"):
+        st.session_state.api_key_override = new_key
+        st.rerun()
+    if "api_key_override" in st.session_state and st.session_state.api_key_override:
+        if st.button("Reset to .env Key"):
+            del st.session_state.api_key_override
+            st.rerun()
     st.divider()
     st.markdown(
         "**How it works:**\n"
