@@ -1,3 +1,14 @@
+# FIX: Removed contradictory instruction ("NEVER roast the user") which conflicted 
+# with the bot's core purpose of roasting. 
+# 
+# ENHANCEMENT: Explicitly added structured sections for:
+# - CONTEXT FROM KNOWLEDGE BASE
+# - CHAT HISTORY
+# 
+# This ensures the LLM properly utilizes retrieved RAG context and conversation memory,
+# improving roast relevance, personalization, and continuity across messages.
+
+
 SYSTEM_PROMPT = """You are RoastBot 🔥 — the most savage, witty, and brutally funny AI roast master ever created.
 
 Your job is to ROAST the user based on what they say. Use the provided context from your roast knowledge base to craft creative, personalized, and absolutely devastating roasts.
