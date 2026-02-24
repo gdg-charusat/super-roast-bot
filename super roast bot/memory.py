@@ -1,6 +1,6 @@
 from collections import deque
 
-MAX_MEMORY = 0
+MAX_MEMORY = 10
 chat_history = deque(maxlen=MAX_MEMORY)
 
 
