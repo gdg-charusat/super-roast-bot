@@ -1,8 +1,25 @@
-__pycache__/
-*.pyc
+# Environment variables — never commit real secrets
 .env
-.DS_Store
-venv/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyc
+*.egg-info/
+dist/
+build/
 .venv/
+venv/
+env/
+
+# Streamlit
+.streamlit/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# VS Code/IDE
 .vscode/
 .idea/
