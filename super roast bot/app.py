@@ -12,6 +12,29 @@ from dotenv import load_dotenv
 from rag import retrieve_context
 from prompt import SYSTEM_PROMPT
 from memory import add_to_memory, format_memory, clear_memory
+from rate_limiter import RateLimiter
+
+@st.cache_resource
+def get_rate_limiter():
+    """Get or create the global rate limiter instance: 5 requests per 60 seconds."""
+    return RateLimiter(max_requests=5, window_seconds=60)
+
+def get_client_id() -> str:
+    """Get a unique identifier for the current client (IP or session ID)."""
+    try:
+        # Streamlit >= 1.37.0 supports st.context
+        if hasattr(st, "context") and hasattr(st.context, "headers"):
+            xff = st.context.headers.get("X-Forwarded-For")
+            if xff:
+                return xff.split(",")[0].strip()
+    except Exception:
+        pass
+    
+    # Fallback to session ID
+    if "client_id" not in st.session_state:
+        import uuid
+        st.session_state.client_id = str(uuid.uuid4())
+    return st.session_state.client_id
 
 # ── Load environment variables from the .env file next to this script ──
 load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)
@@ -130,15 +153,22 @@ for msg in st.session_state.messages:
 
 # Chat input
 if user_input := st.chat_input("Say something... if you dare 🔥"):
-    # Show user message
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    with st.chat_message("user", avatar="🤡"):
-        st.markdown(user_input)
+    limiter = get_rate_limiter()
+    client_id = get_client_id()
+    
+    if not limiter.is_allowed(client_id):
+        wait_time = int(limiter.get_wait_time(client_id))
+        st.error(f"🛑 Whoa there, speedster! You're getting roasted too fast. Wait {wait_time} seconds before trying again.")
+    else:
+        # Show user message
+        st.session_state.messages.append({"role": "user", "content": user_input})
+        with st.chat_message("user", avatar="🤡"):
+            st.markdown(user_input)
 
-    # Generate roast
-    with st.chat_message("assistant", avatar="😈"):
-        with st.spinner("Cooking up a roast... 🍳"):
-            reply = chat(user_input)
-            st.markdown(reply)
+        # Generate roast
+        with st.chat_message("assistant", avatar="😈"):
+            with st.spinner("Cooking up a roast... 🍳"):
+                reply = chat(user_input)
+                st.markdown(reply)
 
-    st.session_state.messages.append({"role": "assistant", "content": reply})
+        st.session_state.messages.append({"role": "assistant", "content": reply})
