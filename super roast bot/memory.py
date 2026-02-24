@@ -3,8 +3,10 @@ Memory Module for RoastBot - Now with SQLite Persistent Storage!
 Chat history persists across server restarts using SQLite database.
 """
 
+
+# Ensure maxlen is at least 1
 MAX_MEMORY = 10
-chat_history = deque(maxlen=MAX_MEMORY)
+chat_history = deque(maxlen=max(1, MAX_MEMORY))
 
 # Maximum number of recent messages to include in context (0 = unlimited)
 MAX_MEMORY = 10
@@ -33,7 +35,9 @@ def get_memory(session_id: str = "default", limit: int = None) -> list:
     Returns:
         List of chat history entries
     """
-    return get_chat_history(session_id, limit or MAX_MEMORY if MAX_MEMORY > 0 else None)
+    # Ensure limit is at least 1 if MAX_MEMORY is 0 or less
+    effective_limit = limit or (MAX_MEMORY if MAX_MEMORY > 0 else 1)
+    return get_chat_history(session_id, effective_limit)
 
 
 def clear_memory(session_id: str = "default"):
@@ -58,7 +62,8 @@ def format_memory(session_id: str = "default") -> str:
         Formatted string of conversation history
     """
     # Get limited history for context (to avoid token overflow)
-    chat_history = get_memory(session_id, MAX_MEMORY if MAX_MEMORY > 0 else None)
+    # Ensure limit is at least 1 if MAX_MEMORY is 0 or less
+    chat_history = get_memory(session_id, MAX_MEMORY if MAX_MEMORY > 0 else 1)
     
     if not chat_history:
         return "No previous conversation."
