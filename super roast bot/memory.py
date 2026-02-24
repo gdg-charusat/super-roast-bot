@@ -1,6 +1,6 @@
 from collections import deque
 
-MAX_MEMORY = 0
+MAX_MEMORY = 10
 chat_history = deque(maxlen=MAX_MEMORY)
 
 
@@ -20,11 +20,10 @@ def clear_memory():
 
 
 def format_memory() -> str:
-    """Format chat history as a readable string for the LLM prompt."""
     if not chat_history:
         return "No previous conversation."
-
-    # Using join for better performance than string concatenation in a loop
+    
+    # Fix the roles: it was showing User as RoastBot and vice versa
     return "\n\n".join(
-        [f"RoastBot: {entry['user']}\nUser: {entry['bot']}" for entry in chat_history]
+        [f"User: {entry['user']}\nAssistant: {entry['bot']}" for entry in chat_history]
     )

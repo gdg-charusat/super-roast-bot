@@ -21,8 +21,8 @@ client = OpenAI(
     api_key=os.getenv("GROQ_KEY")
 )
 
-TEMPERATURE = 0.8       
-MAX_TOKENS = 512        
+TEMPERATURE = 0.01       
+MAX_TOKENS = 200      
 MODEL_NAME = "llama-3.1-8b-instant"
 
 
