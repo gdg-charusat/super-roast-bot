@@ -6,3 +6,4 @@ sentence-transformers
 langchain
 tiktoken
 numpy
+PyPDF2

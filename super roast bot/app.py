@@ -4,114 +4,66 @@ Built with Streamlit + Groq + FAISS.
 """
 
 import os
+from pathlib import Path
 import streamlit as st
 from groq import Groq
 from dotenv import load_dotenv
 
-# If rag.py exists, import safely
-try:
-    from rag import retrieve_context
-except ImportError:
-    def retrieve_context(query):
-        return "No roast knowledge found. Roast creatively."
+from rag import retrieve_context
+from prompt import SYSTEM_PROMPT
+from memory import add_to_memory, format_memory, clear_memory
 
-# -------------------- LOAD ENV -------------------- #
-
+# ── Load environment variables ──
 load_dotenv()
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+# ── Configure Groq client (OpenAI-compatible) ──
+client = OpenAI(
+    base_url="https://api.groq.com/openai/v1",
+    api_key=os.getenv("GROQ_KEY")
+)
 
-if not GROQ_API_KEY:
-    st.error("🚨 GROQ_API_KEY not found. Check your .env file.")
-    st.stop()
+TEMPERATURE = 0.8       
+MAX_TOKENS = 512        
+MODEL_NAME = "llama-3.1-8b-instant"
 
-client = Groq(api_key=GROQ_API_KEY)
-
-# -------------------- SETTINGS -------------------- #
-
-TEMPERATURE = 0.8
-MAX_TOKENS = 1024
-MODEL_NAME = "moonshotai/kimi-k2-instruct-0905"
-
-SYSTEM_PROMPT = """
-You are RoastBot 🔥.
-Your job is to roast the user in a funny, clever way.
-Be sarcastic, witty and savage.
-Do NOT be hateful, racist, or truly harmful.
-Keep it playful but brutal.
-"""
-
-# -------------------- MEMORY SYSTEM -------------------- #
-
-if "memory" not in st.session_state:
-    st.session_state.memory = []
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-def add_to_memory(user, bot):
-    st.session_state.memory.append({
-        "user": user,
-        "bot": bot
-    })
-
-def clear_memory():
-    st.session_state.memory = []
-
-def format_memory(memory):
-    formatted = ""
-    for item in memory:
-        formatted += f"User: {item['user']}\nBot: {item['bot']}\n\n"
-    return formatted
-
-# -------------------- CHAT FUNCTION -------------------- #
 
 def chat(user_input: str) -> str:
+    """Generate a roast response for the user's input."""
 
     if not user_input.strip():
         return "You sent me nothing? Even your messages are empty like your resume. 🔥"
 
-    # Retrieve RAG context safely
-    try:
-        context = retrieve_context(user_input)
-    except Exception:
-        context = "Roast creatively."
 
-    history = format_memory(st.session_state.memory)
+    # Retrieve relevant roast context via RAG
+    context = retrieve_context(user_input)
 
-    final_prompt = (
+    # Get conversation history
+    history = format_memory()
+
+    prompt = (
         f"{SYSTEM_PROMPT}\n\n"
-        f"Roast context:\n{context}\n\n"
-        f"Recent conversation:\n{history}"
+        f"Use this roast context for inspiration: {context}\n\n"
+        f"Recent conversation for context: {history}"
     )
-
-    try:
-        response = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=[
-                {"role": "system", "content": final_prompt},
-                {"role": "user", "content": user_input},
-            ],
-            temperature=TEMPERATURE,
-            max_tokens=MAX_TOKENS,
-        )
+    # Generate response from Groq
+    response = client.chat.completions.create(
+        model=MODEL_NAME,
+        messages=[
+            {"role": "system", "content": prompt},
+            {"role": "user", "content": user_input},
+        ],
+        temperature=TEMPERATURE,
+        max_tokens=MAX_TOKENS,
+    )
 
         reply = response.choices[0].message.content
 
-    except Exception as e:
-        return f"Groq API Error: {str(e)}"
-
+    # Store in memory
     add_to_memory(user_input, reply)
 
-    return reply
+        return reply
 
-# -------------------- UI -------------------- #
-
-st.set_page_config(
-    page_title="Super RoastBot",
-    page_icon="🔥",
-    layout="centered"
-)
+st.set_page_config(page_title="Super RoastBot", page_icon="🔥", layout="centered")
 
 st.title("🔥 Super RoastBot")
 st.caption("I roast harder than your code roasts your CPU")
@@ -123,16 +75,21 @@ with st.sidebar:
     if st.button("🗑️ Clear Chat"):
         st.session_state.messages = []
         clear_memory()
+        st.success("Chat cleared!")
         st.rerun()
 
     st.divider()
     st.markdown(
         "**How it works:**\n"
-        "1️⃣ Your message goes through RAG retrieval\n"
-        "2️⃣ Roast knowledge is fetched\n"
-        "3️⃣ Groq crafts a personalized roast\n"
-        "4️⃣ Emotional damage delivered 🔥"
+        "1. Your message is sent to RAG retrieval\n"
+        "2. Relevant roast knowledge is fetched\n"
+        "3. Groq crafts a personalized roast\n"
+        "4. You cry. Repeat."
     )
+
+# Initialize session state
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
 # Display previous messages
 for msg in st.session_state.messages:
