@@ -3,6 +3,10 @@ Memory Module for RoastBot - Now with SQLite Persistent Storage!
 Chat history persists across server restarts using SQLite database.
 """
 
+import re
+from collections import deque
+from database import add_chat_entry, get_chat_history, clear_chat_history
+
 MAX_MEMORY = 10
 chat_history = deque(maxlen=MAX_MEMORY)
 
@@ -67,3 +71,22 @@ def format_memory(session_id: str = "default") -> str:
     return "\n\n".join(
         [f"User: {entry['user']}\nRoastBot: {entry['bot']}" for entry in chat_history]
     )
+
+
+def _sanitize(text: str) -> str:
+    """
+    Sanitize text by removing PII (personally identifiable information).
+    
+    Args:
+        text: Text to sanitize
+    
+    Returns:
+        Sanitized text with PII replaced
+    """
+    # Remove email addresses
+    text = re.sub(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', '[EMAIL]', text)
+    
+    # Remove phone numbers (various formats)
+    text = re.sub(r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b', '[PHONE]', text)
+    
+    return text
