@@ -4,7 +4,6 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 from PyPDF2 import PdfReader 
 
-# Use the data folder instead of a single file
 DATA_FOLDER = os.path.join(os.path.dirname(__file__), "data")
 EMBEDDING_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
 
@@ -12,18 +11,16 @@ def get_text_from_files():
     """Reads all .txt and .pdf files from the data folder."""
     all_text = ""
     if not os.path.exists(DATA_FOLDER):
-        os.makedirs(DATA_FOLDER) # Create folder if it doesn't exist
-        return "No data found."
+        os.makedirs(DATA_FOLDER)
+        return ""
         
     for filename in os.listdir(DATA_FOLDER):
         file_path = os.path.join(DATA_FOLDER, filename)
         
-        # Process Text Files
         if filename.endswith(".txt"):
             with open(file_path, "r", encoding="utf-8") as f:
                 all_text += f.read() + "\n"
         
-        # Process PDF Files
         elif filename.endswith(".pdf"):
             try:
                 reader = PdfReader(file_path)
@@ -37,9 +34,11 @@ def get_text_from_files():
     return all_text
 
 def load_and_chunk(chunk_size: int = 500) -> list[str]:
-    """Retrieves combined text and splits into chunks for FAISS."""
+    """Retrieves combined text and splits into chunks."""
     text = get_text_from_files()
     chunks = []
+    if not text.strip():
+        return []
     for i in range(0, len(text), chunk_size):
         chunk = text[i:i + chunk_size].strip()
         if chunk:
@@ -47,26 +46,38 @@ def load_and_chunk(chunk_size: int = 500) -> list[str]:
     return chunks
 
 def build_index(chunks: list[str], embedding_model):
-    """Build a FAISS index from text chunks."""
+    """
+    Build a FAISS index from text chunks.
+    Returns: (faiss_index, list_of_chunks)
+    """
+    # Consistency Check: Ensure we have at least one chunk to avoid FAISS errors
     if not chunks:
-        # Fallback if data folder is empty
-        chunks = ["Default roast: Your code is so dry it's a fire hazard."]
+        chunks = ["No roast data available. Please add files to the data folder."]
         
     embeddings = embedding_model.encode(chunks)
     index = faiss.IndexFlatL2(embeddings.shape[1])
     index.add(np.array(embeddings).astype("float32"))
+    
+    # Returning in order: (Index object, List of strings)
     return index, chunks
 
-# Build index at startup
-ALL_CHUNKS, PROCESSED_CHUNKS = load_and_chunk(), []
-INDEX, CHUNKS = build_index(ALL_CHUNKS, EMBEDDING_MODEL)
+# --- CRITICAL: Verified Unpacking Order ---
+# load_and_chunk returns a list
+RAW_CHUNKS = load_and_chunk()
+
+# build_index returns (index, list) -> Unpacked into (INDEX, CHUNKS)
+# This matches the requested consistency: INDEX = Index Object, CHUNKS = List
+INDEX, CHUNKS = build_index(RAW_CHUNKS, EMBEDDING_MODEL)
 
 def retrieve_context(query: str, top_k: int = 3) -> str:
-    """Retrieve relevant context using the corrected FAISS index."""
+    """Retrieve context using the global INDEX and CHUNKS."""
     query_embedding = EMBEDDING_MODEL.encode([query])
+    
+    # We use INDEX (the FAISS object)
     distances, indices = INDEX.search(
         np.array(query_embedding).astype("float32"), top_k
     )
-    # Fixed: Use indices[0] for correct result mapping
+    
+    # We use CHUNKS (the list) mapping to indices[0]
     results = [CHUNKS[i] for i in indices[0] if i < len(CHUNKS)]
     return "\n\n".join(results)
