@@ -120,7 +120,7 @@ def retrieve_context(query: str, top_k: int = 3) -> str:
     Returns:
         Concatenated relevant text chunks, or a default message if none found.
     """
-try:
+    try:
         chunks, index = _get_index()
         embedding_model = _get_embedding_model()
 
