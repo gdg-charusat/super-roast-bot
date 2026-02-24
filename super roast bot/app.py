@@ -5,9 +5,11 @@ Built with Streamlit + Groq + FAISS.
 
 import os
 from pathlib import Path
+import threading
 import streamlit as st
 from openai import OpenAI
 from dotenv import load_dotenv
+from flask import Flask, jsonify
 
 from rag import retrieve_context
 from prompt import SYSTEM_PROMPT
@@ -33,6 +35,29 @@ client = OpenAI(
 TEMPERATURE = float(os.getenv("TEMPERATURE", 0.8))
 MAX_TOKENS = int(os.getenv("MAX_TOKENS", 512))
 MODEL_NAME = os.getenv("MODEL_NAME", "llama-3.1-8b-instant")
+
+# ── Health Check Flask Server ──
+health_app = Flask(__name__)
+
+@health_app.route('/health', methods=['GET'])
+def health():
+    """Health check endpoint for monitoring and deployment checks."""
+    return jsonify({
+        "status": "healthy",
+        "service": "Super RoastBot",
+        "message": "Service is running and available"
+    }), 200
+
+def run_health_server():
+    """Run the Flask health check server in a separate thread."""
+    port = int(os.getenv("HEALTH_CHECK_PORT", 5000))
+    health_app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
+
+# Start health check server once (using session state to prevent multiple instances)
+if "health_server_started" not in st.session_state:
+    st.session_state.health_server_started = True
+    health_thread = threading.Thread(target=run_health_server, daemon=True)
+    health_thread.start()
 
 
 def chat(user_input: str) -> str:
