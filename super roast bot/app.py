@@ -18,7 +18,7 @@ load_dotenv()
 # ── Configure Groq client (OpenAI-compatible) ──
 client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
-    api_key=os.getenv("GROQ_KEY")
+    api_key=os.getenv("GROQ_API_KEY")
 )
 
 TEMPERATURE = 0.8       
