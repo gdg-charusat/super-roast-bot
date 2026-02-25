@@ -34,7 +34,7 @@ def _get_index():
     return _chunks, _index
 
 
-def load_and_chunk(file_path: str, chunk_size: int = 300) -> list[str]:
+def load_and_chunk(file_path: str, chunk_size: int = 500) -> list[str]:
     """
     Load a text file and split it into semantic chunks.
 
@@ -129,7 +129,7 @@ def retrieve_context(query: str, top_k: int = 3) -> str:
 
         query_embedding = embedding_model.encode([query])
         distances, indices = index.search(
-            np.array(query_embedding).astype("float32"),
+            np.array(query_embedding).astype("float32"), 
             min(top_k, len(chunks))
         )
 
@@ -139,3 +139,4 @@ def retrieve_context(query: str, top_k: int = 3) -> str:
     except Exception as e:
         print(f"Error during retrieval: {e}")
         return "No roast context available. I'll roast from pure instinct."
+

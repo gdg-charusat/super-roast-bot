@@ -16,25 +16,22 @@ from memory import add_to_memory, format_memory, clear_memory
 # ── Load environment variables from the .env file next to this script ──
 load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)
 
-# ── Validate the API key is present and not a placeholder ──
-_api_key = os.getenv("GROQ_KEY")
+# ── Validate the API key is present and not a placeholder (standardized name)
+_api_key = os.getenv("GROQ_API_KEY")
 if not _api_key or _api_key.strip() in ("", "YOUR API KEY", "your_groq_api_key_here"):
     raise EnvironmentError(
-        "GROQ_KEY is not set or is still the placeholder value. "
+        "GROQ_API_KEY is not set or is still the placeholder value. "
         "Please add your Groq API key to the .env file:\n"
-        "  GROQ_KEY=your_actual_key_here"
+        "  GROQ_API_KEY=your_actual_key_here"
     )
 
 # ── Configuration ──
-GROQ_API_KEY = os.getenv("GROQ_KEY")
-if not GROQ_API_KEY:
-    st.error("❌ GROQ_KEY not found in .env file. Please configure your API key.")
-    st.stop()
+GROQ_API_KEY = _api_key
 
 # ── Configure Groq client (OpenAI-compatible) ──
 client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
-    api_key=GROQ_API_KEY
+    api_key=GROQ_API_KEY,
 )
 
 TEMPERATURE = float(os.getenv("TEMPERATURE", 0.8))
