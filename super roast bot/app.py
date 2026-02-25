@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 from rag import retrieve_context
 from prompt import SYSTEM_PROMPT
 from memory import add_to_memory, format_memory, clear_memory
+from utils.roast_mode import get_system_prompt
+from utils.token_guard import trim_chat_history
 
 # ── Load environment variables from the .env file next to this script ──
 load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)
@@ -42,7 +44,7 @@ MAX_TOKENS = int(os.getenv("MAX_TOKENS", 512))
 MODEL_NAME = os.getenv("MODEL_NAME", "llama-3.1-8b-instant")
 
 
-def chat(user_input: str) -> str:
+def chat(user_input: str, system_prompt: str = SYSTEM_PROMPT) -> str:
     """Generate a roast response for the user's input using structured messages."""
 
     # used .strip to remove whitespaces 
@@ -56,13 +58,20 @@ def chat(user_input: str) -> str:
         # Get conversation history
         history = format_memory()
 
+        # Build chat history list for token guard
+        raw_history = [{"content": f"{e}"} for e in history.split("\n\n") if e.strip()]
+
+        # Guard: trim history if it exceeds token budget
+        raw_history = trim_chat_history(raw_history, max_tokens=3000)
+        trimmed_history = "\n\n".join(m["content"] for m in raw_history)
+
         # Build structured messages to avoid prompt injection and instruction mixing
         messages = [
             {
                 "role": "user",
                 "content": (
                     f"Roast context (from knowledge base):\n{context}\n\n"
-                    f"Recent conversation:\n{history}\n\n"
+                    f"Recent conversation:\n{trimmed_history}\n\n"
                     f"Current message: {user_input}"
                 ),
             },
@@ -72,7 +81,7 @@ def chat(user_input: str) -> str:
         response = client.chat.completions.create(
             model=MODEL_NAME,
             messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "system", "content": system_prompt},
                 *messages,
             ],
             temperature=TEMPERATURE,
@@ -98,6 +107,17 @@ st.caption("I roast harder than your code roasts your CPU")
 # Sidebar
 with st.sidebar:
     st.header("⚙️ Controls")
+
+    # ── Roast Mode selector (Feature 1) ──
+    mode = st.selectbox(
+        "🎚️ Roast Mode",
+        ["Savage 🔥", "Funny 😏", "Friendly 🙂", "Professional 💼"],
+        index=0,
+        help="Choose how hard RoastBot roasts you.",
+    )
+    system_prompt = get_system_prompt(mode)
+    st.divider()
+
     if st.button("🗑️ Clear Chat"):
         st.session_state.messages = []
         clear_memory()
@@ -138,7 +158,7 @@ if user_input := st.chat_input("Say something... if you dare 🔥"):
     # Generate roast
     with st.chat_message("assistant", avatar="😈"):
         with st.spinner("Cooking up a roast... 🍳"):
-            reply = chat(user_input)
+            reply = chat(user_input, system_prompt=system_prompt)
             st.markdown(reply)
 
     st.session_state.messages.append({"role": "assistant", "content": reply})
