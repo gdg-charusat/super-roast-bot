@@ -31,7 +31,6 @@ def get_text_from_files():
                 
     return all_text
 
-<<<<<<< HEAD
 def load_and_chunk(file_path: str, chunk_size: int = 5) -> list[str]: 
     """
     Load a text file and split it into chunks.
@@ -46,11 +45,6 @@ def load_and_chunk(file_path: str, chunk_size: int = 5) -> list[str]:
     with open(file_path, "r", encoding="utf-8") as f:
         text = f.read()
 
-=======
-def load_and_chunk(chunk_size: int = 500) -> list[str]:
-    """Chunks text retrieved from multiple files."""
-    text = get_text_from_files()
->>>>>>> 5fc6cb0 (feat(T066): implement multi-format RAG with PDF and directory loading)
     chunks = []
     for i in range(0, len(text), chunk_size):
         chunk = text[i:i + chunk_size].strip()
