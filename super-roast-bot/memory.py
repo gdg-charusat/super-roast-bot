@@ -5,7 +5,7 @@ Chat history persists across server restarts using SQLite database.
 
 from database import add_chat_entry, get_chat_history, clear_chat_history
 
-MAX_MEMORY = 5
+MAX_MEMORY = 10
 
 
 def add_to_memory(user_msg: str, bot_msg: str, session_id: str = "default"):
