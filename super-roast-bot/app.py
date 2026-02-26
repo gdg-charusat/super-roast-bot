@@ -21,52 +21,45 @@ MODEL_NAME = os.getenv("MODEL_NAME", "llama-3.1-8b-instant")
 
 
 def chat(user_input: str, system_prompt: str = SYSTEM_PROMPT) -> str:
-    """Generate a roast response for the user's input using structured messages."""
+    """Generate a roast response while preserving history structure."""
 
-    # used .strip to remove whitespaces 
     if not user_input or user_input.isspace():
         return "You sent me nothing? Even your messages are empty, just like your GitHub contribution graph. 🔥"
 
     try:
-        # Retrieve relevant roast context via RAG
+        # Retrieve RAG context
         context = retrieve_context(user_input)
 
-        # Get conversation history
+        # Get raw structured memory (must be list of dicts)
         history = format_memory()
 
-        # Build chat history list for token guard
-        raw_history = [{"content": f"{e}"} for e in history.split("\n\n") if e.strip()]
+        # Ensure history is a list
+        if not isinstance(history, list):
+            history = []
 
-        # Guard: trim history if it exceeds token budget
-        raw_history = trim_chat_history(raw_history, max_tokens=3000)
-        trimmed_history = "\n\n".join(m["content"] for m in raw_history)
+        # Trim using token guard
+        raw_history = trim_chat_history(history, max_tokens=3000)
 
-        # Build structured messages to avoid prompt injection and instruction mixing
+        # Build proper structured messages
         messages = [
+            {"role": "system", "content": system_prompt},
+            *raw_history,
             {
                 "role": "user",
-                "content": (
-                    f"Roast context (from knowledge base):\n{context}\n\n"
-                    f"Recent conversation:\n{trimmed_history}\n\n"
-                    f"Current message: {user_input}"
-                ),
+                "content": f"Roast context:\n{context}\n\nCurrent message:\n{user_input}",
             },
         ]
 
-        # Generate response from Groq using structured system prompt
         response = client.chat.completions.create(
             model=MODEL_NAME,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                *messages,
-            ],
+            messages=messages,
             temperature=TEMPERATURE,
             max_tokens=MAX_TOKENS,
         )
 
         reply = response.choices[0].message.content
 
-        # Store in memory
+        # Save to memory
         add_to_memory(user_input, reply)
 
         return reply
@@ -75,23 +68,26 @@ def chat(user_input: str, system_prompt: str = SYSTEM_PROMPT) -> str:
         st.error(f"Error generating roast: {e}")
         return f"Even I broke trying to roast you. Error: {str(e)[:100]}"
 
+
+# ---------------- STREAMLIT UI ---------------- #
+
 st.set_page_config(page_title="Super RoastBot", page_icon="🔥", layout="centered")
 
-st.title("🔥Super RoastBot")
+st.title("🔥 Super RoastBot")
 st.caption("I roast harder than your code roasts your CPU")
 
 # Sidebar
 with st.sidebar:
     st.header("⚙️ Controls")
 
-    # ── Roast Mode selector (Feature 1) ──
     mode = st.selectbox(
         "🎚️ Roast Mode",
         ["Savage 🔥", "Funny 😏", "Friendly 🙂", "Professional 💼"],
         index=0,
-        help="Choose how hard RoastBot roasts you.",
     )
+
     system_prompt = get_system_prompt(mode)
+
     st.divider()
 
     if st.button("🗑️ Clear Chat"):
@@ -99,30 +95,22 @@ with st.sidebar:
         clear_memory()
         st.success("Chat cleared!")
         st.rerun()
+
     st.divider()
-    st.markdown(
-        "**How it works:**\n"
-        "1. Your message is sent to RAG retrieval\n"
-        "2. Relevant roast knowledge is fetched\n"
-        "3. Groq crafts a personalized roast\n"
-        "4. You cry. Repeat."
-    )
-    st.divider()
+
     st.markdown(
         "**⚙️ Config (env-based):**\n"
         f"- Model: `{MODEL_NAME}`\n"
         f"- Temp: `{TEMPERATURE}`\n"
         f"- Max tokens: `{MAX_TOKENS}`"
     )
-    reply = response.choices[0].message.content
-    add_to_memory(user_input, reply)
-    return reply
+
 
 # Initialize session state
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat history
+# Display existing chat history
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"], avatar="😈" if msg["role"] == "assistant" else "🤡"):
         st.markdown(msg["content"])
