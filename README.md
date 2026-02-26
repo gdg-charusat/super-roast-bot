@@ -99,6 +99,22 @@ When RoastBot is fully fixed, it should:
 
 ---
 
+## 🔒 Security & Performance Hardening
+
+The app now includes the following protections:
+
+- Lazy-loaded embedding model/index (reduces startup memory footprint)
+- Prompt-injection detection + strict system-boundary messaging
+- Input sanitization and max input length validation
+- Per-session rate limiting with 429-style rejection message
+- Concurrency guard via bounded semaphore for model requests
+- TTL/LRU caching for repeated user queries and retrieved RAG context
+- File ingestion validation for RAG (`.txt`/`.pdf` only, size/page/text limits)
+
+> Note: This project uses Streamlit UI directly. If you need literal HTTP 429 transport status codes on `/ask` and `/summarize`, add an API layer (e.g., FastAPI) in front of the app.
+
+---
+
 ## 📝 Submission Format
 
 For each bug you find, document:
