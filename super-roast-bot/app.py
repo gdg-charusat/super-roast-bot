@@ -15,6 +15,8 @@ from memory import add_to_memory, format_memory, clear_memory
 
 # ── Load environment variables from the .env file next to this script ──
 load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)
+# ── Load environment variables from the .env file next to this script ──
+load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)
 
 # ── Validate the API key is present and not a placeholder ──
 def get_validated_api_key():

@@ -1,7 +1,3 @@
-"""
-Memory Module for RoastBot - Now with SQLite Persistent Storage!
-Chat history persists across server restarts using SQLite database.
-"""
 import re
 from collections import deque
 from database import add_chat_entry, get_chat_history, clear_chat_history
@@ -15,15 +11,12 @@ def _sanitize(text: str) -> str:
     """
     if not text:
         return ""
-    
     # Simple regex for demo/smoke test purposes
     # Replace email-like patterns
     text = re.sub(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', '[EMAIL]', text)
     # Replace phone-like patterns (e.g., 555-123-4567)
     text = re.sub(r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b', '[PHONE]', text)
-    
     return text.strip()
-
 
 def add_to_memory(user_msg: str, bot_msg: str, session_id: str = "default"):
     """
@@ -39,7 +32,6 @@ def add_to_memory(user_msg: str, bot_msg: str, session_id: str = "default"):
     # Persist to SQLite
     add_chat_entry(user_msg, bot_msg, session_id)
 
-
 def get_memory(session_id: str = "default", limit: int = None) -> list:
     """
     Return current chat history as a list from the SQLite database.
@@ -53,7 +45,6 @@ def get_memory(session_id: str = "default", limit: int = None) -> list:
     """
     return get_chat_history(session_id, limit or MAX_MEMORY if MAX_MEMORY > 0 else None)
 
-
 def clear_memory(session_id: str = "default"):
     """
     Clear all chat history for a session from the SQLite database.
@@ -63,7 +54,6 @@ def clear_memory(session_id: str = "default"):
     """
     chat_history.clear()
     clear_chat_history(session_id)
-
 
 def format_memory(session_id: str = "default") -> str:
     """
@@ -78,10 +68,8 @@ def format_memory(session_id: str = "default") -> str:
     """
     # Get limited history for context (to avoid token overflow)
     history = get_memory(session_id, MAX_MEMORY if MAX_MEMORY > 0 else None)
-    
     if not history:
         return "No previous conversation."
-    
     return "\n\n".join(
         [f"User: {entry['user']}\nRoastBot: {entry['bot']}" for entry in history]
     )

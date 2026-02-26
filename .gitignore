@@ -2,6 +2,7 @@
 .env
 super-roast-bot/.env
 
+<<<<<<< HEAD
 # Python
 __pycache__/
 *.py[cod]
@@ -25,3 +26,8 @@ Thumbs.db
 
 # Database
 *.db
+=======
+# VS Code/IDE
+.vscode/
+.idea/
+>>>>>>> 858b0f19a0a3604c7043d5a91316be39cb5ed8db
