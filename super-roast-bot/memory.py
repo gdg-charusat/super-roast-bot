@@ -9,7 +9,6 @@ from database import add_chat_entry, get_chat_history, clear_chat_history
 MAX_MEMORY = 10
 chat_history = deque(maxlen=MAX_MEMORY)
 
-
 def _sanitize(text: str) -> str:
     """
     Sanitize PII (Phone/Email) from chat messages.
