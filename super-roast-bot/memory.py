@@ -1,16 +1,10 @@
+
 """
 Memory Module for RoastBot - Now with SQLite Persistent Storage!
 Chat history persists across server restarts using SQLite database.
 """
-from database import add_chat_entry, get_chat_history, clear_chat_history
-
-def add_to_memory(user_msg: str, bot_msg: str):
-    chat_history.append({"user": user_msg, "bot": bot_msg})
-
-def get_memory() -> list:
-    return list(chat_history)
-
 import re
+from database import add_chat_entry, get_chat_history, clear_chat_history
 
 def _sanitize(text: str) -> str:
     """
@@ -34,8 +28,6 @@ def add_to_memory(user_msg: str, bot_msg: str, session_id: str = "default"):
         bot_msg: The bot's response
         session_id: Optional session identifier for multi-user support
     """
-    # Update local deque
-    chat_history.append({"user": user_msg, "bot": bot_msg})
     # Persist to SQLite
     add_chat_entry(user_msg, bot_msg, session_id)
 
@@ -59,7 +51,6 @@ def clear_memory(session_id: str = "default"):
     Args:
         session_id: The session whose history should be cleared
     """
-    chat_history.clear()
     clear_chat_history(session_id)
 
 def format_memory(session_id: str = "default") -> str:
@@ -74,9 +65,8 @@ def format_memory(session_id: str = "default") -> str:
         Formatted string of conversation history
     """
     # Get limited history for context (to avoid token overflow)
-    chat_history = get_memory(session_id, MAX_MEMORY if MAX_MEMORY > 0 else None)
-    
-    if not chat_history:
+    history = get_memory(session_id, MAX_MEMORY if MAX_MEMORY > 0 else None)
+    if not history:
         return "No previous conversation."
     return "\n\n".join(
         [f"User: {entry['user']}\nRoastBot: {entry['bot']}" for entry in history]
