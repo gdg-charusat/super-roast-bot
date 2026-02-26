@@ -1,7 +1,8 @@
+# Environment variables — never commit real secrets
 .env
-"super roast bot/.env"
+super-roast-bot/.env
 
 # VS Code/IDE
 .vscode/
 .idea/
->>>>>>> main
+
