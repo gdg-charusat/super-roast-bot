@@ -1,30 +1,20 @@
 from collections import deque
 
-"""
-Memory Module for RoastBot - Team T066
-Cleaned version using in-memory deque for session persistence.
-"""
-
 MAX_MEMORY = 10 
 chat_history = deque(maxlen=MAX_MEMORY)
 
 def add_to_memory(user_msg: str, bot_msg: str):
-    """Add a user-bot exchange to memory."""
     chat_history.append({"user": user_msg, "bot": bot_msg})
 
 def get_memory() -> list:
-    """Return current chat history as a list."""
     return list(chat_history)
 
 def format_memory() -> str:
-    """Format chat history for the LLM prompt with correct role labels."""
     if not chat_history:
         return "No previous conversation."
-
     return "\n\n".join(
         [f"User: {entry['user']}\nAssistant: {entry['bot']}" for entry in chat_history]
     )
 
 def clear_memory():
-    """Clear all chat history."""
     chat_history.clear()

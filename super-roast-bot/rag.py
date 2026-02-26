@@ -12,7 +12,6 @@ def get_text_from_files():
     if not os.path.exists(DATA_FOLDER):
         os.makedirs(DATA_FOLDER)
         return ""
-        
     for filename in os.listdir(DATA_FOLDER):
         file_path = os.path.join(DATA_FOLDER, filename)
         if filename.endswith(".txt"):
@@ -23,35 +22,27 @@ def get_text_from_files():
                 reader = PdfReader(file_path)
                 for page in reader.pages:
                     content = page.extract_text()
-                    # FIX: Handle None return and ensure string concatenation works
-                    if content: 
+                    if content: # SAFETY FIX FOR NONE-TYPE
                         all_text += str(content).strip() + "\n"
             except Exception as e:
-                print(f"Error reading PDF {filename}: {e}")
+                print(f"Error reading {filename}: {e}")
     return all_text
 
-def load_and_chunk(chunk_size: int = 500) -> list[str]:
+def load_and_chunk(chunk_size=500):
     text = get_text_from_files()
-    chunks = []
-    if not text.strip():
-        return ["No roast data available."]
-    for i in range(0, len(text), chunk_size):
-        chunk = text[i:i + chunk_size].strip()
-        if chunk:
-            chunks.append(chunk)
-    return chunks
+    chunks = [text[i:i+chunk_size] for i in range(0, len(text), chunk_size) if text[i:i+chunk_size].strip()]
+    return chunks or ["No data"]
 
-def build_index(chunks: list[str], embedding_model):
-    embeddings = embedding_model.encode(chunks)
+def build_index(chunks, model):
+    embeddings = model.encode(chunks)
     index = faiss.IndexFlatL2(embeddings.shape[1])
     index.add(np.array(embeddings).astype("float32"))
     return index, chunks
 
-RAW_CHUNKS = load_and_chunk()
-INDEX, CHUNKS = build_index(RAW_CHUNKS, EMBEDDING_MODEL)
+CHUNKS_LIST = load_and_chunk()
+INDEX, CHUNKS = build_index(CHUNKS_LIST, EMBEDDING_MODEL)
 
-def retrieve_context(query: str, top_k: int = 3) -> str:
+def retrieve_context(query, top_k=3):
     query_embedding = EMBEDDING_MODEL.encode([query])
-    distances, indices = INDEX.search(np.array(query_embedding).astype("float32"), top_k)
-    results = [CHUNKS[i] for i in indices[0] if i < len(CHUNKS)]
-    return "\n\n".join(results)
+    _, indices = INDEX.search(np.array(query_embedding).astype("float32"), top_k)
+    return "\n\n".join([CHUNKS[i] for i in indices[0] if i < len(CHUNKS)])
