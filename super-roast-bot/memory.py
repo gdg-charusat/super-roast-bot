@@ -18,15 +18,12 @@ def _sanitize(text: str) -> str:
     """
     if not text:
         return ""
-    
     # Simple regex for demo/smoke test purposes
     # Replace email-like patterns
     text = re.sub(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', '[EMAIL]', text)
     # Replace phone-like patterns (e.g., 555-123-4567)
     text = re.sub(r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b', '[PHONE]', text)
-    
     return text.strip()
-
 
 def add_to_memory(user_msg: str, bot_msg: str, session_id: str = "default"):
     """
@@ -37,8 +34,10 @@ def add_to_memory(user_msg: str, bot_msg: str, session_id: str = "default"):
         bot_msg: The bot's response
         session_id: Optional session identifier for multi-user support
     """
+    # Update local deque
+    chat_history.append({"user": user_msg, "bot": bot_msg})
+    # Persist to SQLite
     add_chat_entry(user_msg, bot_msg, session_id)
-
 
 def get_memory(session_id: str = "default", limit: int = None) -> list:
     """
@@ -53,7 +52,6 @@ def get_memory(session_id: str = "default", limit: int = None) -> list:
     """
     return get_chat_history(session_id, limit or MAX_MEMORY if MAX_MEMORY > 0 else None)
 
-
 def clear_memory(session_id: str = "default"):
     """
     Clear all chat history for a session from the SQLite database.
@@ -61,8 +59,8 @@ def clear_memory(session_id: str = "default"):
     Args:
         session_id: The session whose history should be cleared
     """
+    chat_history.clear()
     clear_chat_history(session_id)
-
 
 def format_memory(session_id: str = "default") -> str:
     """
@@ -81,8 +79,5 @@ def format_memory(session_id: str = "default") -> str:
     if not chat_history:
         return "No previous conversation."
     return "\n\n".join(
-        [f"User: {entry['user']}\nAssistant: {entry['bot']}" for entry in chat_history]
+        [f"User: {entry['user']}\nRoastBot: {entry['bot']}" for entry in history]
     )
-
-def clear_memory():
-    chat_history.clear()
