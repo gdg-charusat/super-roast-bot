@@ -1,13 +1,15 @@
-"""
-Memory Module for RoastBot - Now with SQLite Persistent Storage!
-Chat history persists across server restarts using SQLite database.
-"""
+from collections import deque
 
-from database import add_chat_entry, get_chat_history, clear_chat_history
+MAX_MEMORY = 10 
+chat_history = deque(maxlen=MAX_MEMORY)
 
-MAX_MEMORY = 10
+def add_to_memory(user_msg: str, bot_msg: str):
+    chat_history.append({"user": user_msg, "bot": bot_msg})
 
+def get_memory() -> list:
+    return list(chat_history)
 
+<<<<<<< fix-deque-maxlen-zero
 def add_to_memory(user_msg: str, bot_msg: str, session_id: str = "default"):
     """
     Add a user-bot exchange to persistent memory (SQLite database).
@@ -61,10 +63,14 @@ def format_memory(session_id: str = "default") -> str:
     # Ensure limit is at least 1 if MAX_MEMORY is 0 or less
     chat_history = get_memory(session_id, MAX_MEMORY if MAX_MEMORY > 0 else 1)
     
+=======
+def format_memory() -> str:
+>>>>>>> main
     if not chat_history:
         return "No previous conversation."
-    
-    # Fix the roles: it was showing User as RoastBot and vice versa
     return "\n\n".join(
-        [f"User: {entry['user']}\nRoastBot: {entry['bot']}" for entry in chat_history]
+        [f"User: {entry['user']}\nAssistant: {entry['bot']}" for entry in chat_history]
     )
+
+def clear_memory():
+    chat_history.clear()

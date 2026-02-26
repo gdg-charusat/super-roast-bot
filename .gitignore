@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+.env
+"super roast bot/.env"
+=======
 # Environment variables — never commit real secrets
 .env
 
@@ -21,3 +25,4 @@ env/
 # OS
 .DS_Store
 Thumbs.db
+>>>>>>> upstream/main
