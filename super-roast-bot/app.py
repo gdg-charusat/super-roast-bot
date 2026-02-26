@@ -23,7 +23,7 @@ def get_validated_api_key():
         return st.session_state.api_key_override.strip()
     
     # Priority 2: Environment variable
-    env_key = os.getenv("GROQ_API_KEY") or os.getenv("GROQ_KEY")
+    env_key = os.getenv("GROQ_API_KEY")
     if env_key:
         # Strip quotes and whitespace that often cause 401s
         env_key = env_key.strip().replace('"', '').replace("'", "")
@@ -54,6 +54,10 @@ def chat_stream(user_input: str):
     """Generate a streaming roast response for the user's input."""
     if not user_input or user_input.isspace():
         yield "You sent me nothing? Even your messages are empty, just like your GitHub contribution graph. 🔥"
+        return
+
+    if not client:
+        yield "⚠️ I can't roast you without an API key. Stop being poor and add one to the sidebar or `.env`. 🔥"
         return
 
     try:
@@ -91,6 +95,9 @@ def chat(user_input: str) -> str:
     if not user_input or user_input.isspace():
         return "You sent me nothing? Even your messages are empty, just like your GitHub contribution graph. 🔥"
 
+    if not client:
+        return "⚠️ I can't roast you without an API key. Stop being poor and add one to the sidebar or `.env`. 🔥"
+
     try:
         # Retrieve relevant roast context via RAG
         context = retrieve_context(user_input)
@@ -122,9 +129,6 @@ def chat(user_input: str) -> str:
         )
 
         reply = response.choices[0].message.content
-
-        # Store in memory
-        add_to_memory(user_input, reply, st.session_state.session_id)
 
         return reply
 
