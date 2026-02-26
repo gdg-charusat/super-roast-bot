@@ -4,8 +4,11 @@ Chat history persists across server restarts using SQLite database.
 """
 from database import add_chat_entry, get_chat_history, clear_chat_history
 
-MAX_MEMORY = 10
+def add_to_memory(user_msg: str, bot_msg: str):
+    chat_history.append({"user": user_msg, "bot": bot_msg})
 
+def get_memory() -> list:
+    return list(chat_history)
 
 import re
 
@@ -77,8 +80,9 @@ def format_memory(session_id: str = "default") -> str:
     
     if not chat_history:
         return "No previous conversation."
-    
-    # Fix the roles: it was showing User as RoastBot and vice versa
     return "\n\n".join(
-        [f"User: {entry['user']}\nRoastBot: {entry['bot']}" for entry in chat_history]
+        [f"User: {entry['user']}\nAssistant: {entry['bot']}" for entry in chat_history]
     )
+
+def clear_memory():
+    chat_history.clear()
