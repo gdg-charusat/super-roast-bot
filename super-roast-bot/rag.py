@@ -7,7 +7,6 @@ import os
 import faiss
 import numpy as np
 from sentence_transformers import SentenceTransformer
-from PyPDF2 import PdfReader # New import
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "roast_data.txt")
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
@@ -139,4 +138,3 @@ def retrieve_context(query: str, top_k: int = 3) -> str:
     except Exception as e:
         print(f"Error during retrieval: {e}")
         return "No roast context available. I'll roast from pure instinct."
-
