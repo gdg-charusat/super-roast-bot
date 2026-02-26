@@ -1,5 +1,6 @@
 # Environment variables — never commit real secrets
-# .env
+.env
+super-roast-bot/.env
 
 # Python
 __pycache__/
@@ -25,4 +26,3 @@ Thumbs.db
 # VS Code/IDE
 .vscode/
 .idea/
-.env
