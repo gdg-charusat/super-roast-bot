@@ -15,6 +15,13 @@ def _sanitize(text: str) -> str:
     # Replace email-like patterns
     text = re.sub(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', '[EMAIL]', text)
     # Replace phone-like patterns (e.g., 555-123-4567)
+    # # Add missing imports
+    # import os
+    # import json
+    # import pickle
+    # import threading
+    # import time
+    # import logging
     text = re.sub(r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b', '[PHONE]', text)
     return text.strip()
 
