@@ -1,42 +1,18 @@
-"""
-RoastBot 🔥 — A RAG-based AI chatbot that roasts you into oblivion.
-Built with Streamlit + Groq + FAISS.
-"""
-
 import os
-from pathlib import Path
 import streamlit as st
 from openai import OpenAI
 from dotenv import load_dotenv
-
 from rag import retrieve_context
 from prompt import SYSTEM_PROMPT
 from memory import add_to_memory, format_memory, clear_memory
 from utils.roast_mode import get_system_prompt
 from utils.token_guard import trim_chat_history
 
-# ── Load environment variables from the .env file next to this script ──
-load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)
+load_dotenv()
 
-# ── Validate the API key is present and not a placeholder ──
-_api_key = os.getenv("GROQ_KEY")
-if not _api_key or _api_key.strip() in ("", "YOUR API KEY", "your_groq_api_key_here"):
-    raise EnvironmentError(
-        "GROQ_KEY is not set or is still the placeholder value. "
-        "Please add your Groq API key to the .env file:\n"
-        "  GROQ_KEY=your_actual_key_here"
-    )
-
-# ── Configuration ──
-GROQ_API_KEY = os.getenv("GROQ_KEY")
-if not GROQ_API_KEY:
-    st.error("❌ GROQ_KEY not found in .env file. Please configure your API key.")
-    st.stop()
-
-# ── Configure Groq client (OpenAI-compatible) ──
 client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
-    api_key=GROQ_API_KEY
+    api_key=os.getenv("GROQ_KEY")
 )
 
 TEMPERATURE = float(os.getenv("TEMPERATURE", 0.8))
@@ -138,6 +114,9 @@ with st.sidebar:
         f"- Temp: `{TEMPERATURE}`\n"
         f"- Max tokens: `{MAX_TOKENS}`"
     )
+    reply = response.choices[0].message.content
+    add_to_memory(user_input, reply)
+    return reply
 
 # Initialize session state
 if "messages" not in st.session_state:
