@@ -1,8 +1,3 @@
-"""
-RAG (Retrieval-Augmented Generation) module for RoastBot.
-Loads roast data, chunks it, embeds it, and retrieves relevant
-context for each user query using FAISS.
-"""
 import os
 import faiss
 import numpy as np

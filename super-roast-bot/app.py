@@ -1,14 +1,7 @@
-"""
-RoastBot 🔥 — A RAG-based AI chatbot that roasts you into oblivion.
-Built with Streamlit + Groq + FAISS.
-"""
-
 import os
-from pathlib import Path
 import streamlit as st
 from openai import OpenAI
 from dotenv import load_dotenv
-
 from rag import retrieve_context
 from prompt import SYSTEM_PROMPT
 from memory import add_to_memory, format_memory, clear_memory
@@ -45,49 +38,11 @@ if GROQ_API_KEY:
 else:
     client = None
 
-TEMPERATURE = float(os.getenv("TEMPERATURE", 0.8))
-MAX_TOKENS = int(os.getenv("MAX_TOKENS", 512))
-MODEL_NAME = os.getenv("MODEL_NAME", "llama-3.1-8b-instant")
-
-
-def chat_stream(user_input: str):
-    """Generate a streaming roast response for the user's input."""
-    if not user_input or user_input.isspace():
-        yield "You sent me nothing? Even your messages are empty, just like your GitHub contribution graph. 🔥"
-        return
-
-    try:
-        context = retrieve_context(user_input)
-        history = format_memory(st.session_state.session_id)
-        
-        messages = [{
-            "role": "user",
-            "content": (
-                f"Roast context (from knowledge base):\n{context}\n\n"
-                f"Recent conversation:\n{history}\n\n"
-                f"Current message: {user_input}"
-            ),
-        }]
-        
-        response = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=[{"role": "system", "content": SYSTEM_PROMPT}, *messages],
-            temperature=TEMPERATURE,
-            max_tokens=MAX_TOKENS,
-            stream=True
-        )
-
-        for chunk in response:
-            if chunk.choices[0].delta.content:
-                yield chunk.choices[0].delta.content
-    except Exception as e:
-        yield f"Even I broke trying to roast you. Error: {str(e)[:100]}"
-
+TEMPERATURE = 0.01       
+MAX_TOKENS = 200      
+MODEL_NAME = "llama-3.1-8b-instant"
 
 def chat(user_input: str) -> str:
-    """Generate a roast response for the user's input using structured messages."""
-
-    # used .strip to remove whitespaces 
     if not user_input or user_input.isspace():
         return "You sent me nothing? Even your messages are empty, just like your GitHub contribution graph. 🔥"
 
@@ -167,40 +122,11 @@ with st.sidebar:
         f"- Temp: `{TEMPERATURE}`\n"
         f"- Max tokens: `{MAX_TOKENS}`"
     )
+    reply = response.choices[0].message.content
+    add_to_memory(user_input, reply)
+    return reply
 
-# Initialize session state
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-if "session_id" not in st.session_state:
-    import uuid
-    st.session_state.session_id = str(uuid.uuid4())
-
-# Display chat history
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"], avatar="😈" if msg["role"] == "assistant" else "🤡"):
-        st.markdown(msg["content"])
-
-# Chat input
-if user_input := st.chat_input("Say something... if you dare 🔥"):
-    # Show user message
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    with st.chat_message("user", avatar="🤡"):
-        st.markdown(user_input)
-
-    # Generate roast
-    with st.chat_message("assistant", avatar="😈"):
-        try:
-            if enable_streaming:
-                reply = st.write_stream(chat_stream(user_input))
-            else:
-                with st.spinner("Cooking up a roast... 🍳"):
-                    reply = chat(user_input)
-                    st.markdown(reply)
-            
-            # Store in memory
-            add_to_memory(user_input, reply, st.session_state.session_id)
-        except Exception as e:
-            reply = f"Even I broke trying to roast you. Error: {e}"
-            st.error(reply)
-
-    st.session_state.messages.append({"role": "assistant", "content": reply})
+st.title("🔥Super RoastBot")
+if user_input := st.chat_input("Say something..."):
+    with st.chat_message("assistant"):
+        st.markdown(chat(user_input))

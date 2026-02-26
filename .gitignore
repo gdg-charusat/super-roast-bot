@@ -2,27 +2,6 @@
 .env
 super-roast-bot/.env
 
-# Python
-__pycache__/
-*.py[cod]
-*.pyc
-*.pyo
-*.pyd
-.Python
-*.egg-info/
-dist/
-build/
-.venv/
-venv/
-env/
-
-# Streamlit
-.streamlit/
-
-# OS
-.DS_Store
-Thumbs.db
-
 # VS Code/IDE
 .vscode/
 .idea/
