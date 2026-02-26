@@ -13,7 +13,7 @@ DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "roast_data.txt")
 EMBEDDING_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
 
 
-def load_and_chunk(file_path: str, chunk_size: int = 5) -> list[str]: 
+def load_and_chunk(file_path: str, chunk_size: int = 500) -> list[str]: 
     """
     Load a text file and split it into chunks.
 
@@ -58,14 +58,6 @@ def retrieve_context(query: str, top_k: int = 3) -> str:
     Returns:
         Concatenated relevant text chunks.
     """
-    query_embedding = EMBEDDING_MODEL.encode([query])
-
-   
-
-    # Pre-load data and index at startup
-
-
-
     query_embedding = EMBEDDING_MODEL.encode([query])
     distances, indices = INDEX.search(
         np.array(query_embedding).astype("float32"), top_k

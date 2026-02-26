@@ -1,4 +1,4 @@
-openai
+groq
 streamlit
 faiss-cpu
 python-dotenv

@@ -5,7 +5,7 @@ Built with Streamlit + Groq + FAISS.
 
 import os
 import streamlit as st
-from openai import OpenAI
+from groq import Groq
 from dotenv import load_dotenv
 
 from rag import retrieve_context
@@ -15,9 +15,8 @@ from memory import add_to_memory, format_memory, clear_memory
 # ── Load environment variables ──
 load_dotenv()
 
-# ── Configure Groq client (OpenAI-compatible) ──
-client = OpenAI(
-    base_url="https://api.groq.com/openai/v1",
+# ── Configure Groq client ──
+client = Groq(
     api_key=os.getenv("GROQ_KEY")
 )
 
@@ -103,7 +102,7 @@ if user_input := st.chat_input("Say something... if you dare 🔥"):
             try:
                 reply = chat(user_input)
                 st.markdown(reply)
-+                add_to_memory(user_input, reply)
+                add_to_memory(user_input, reply)
             except Exception as e:
                 reply = f"Even I broke trying to roast you. Error: {e}"
                 st.error(reply)
