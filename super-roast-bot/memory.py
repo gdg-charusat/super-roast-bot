@@ -35,6 +35,9 @@ def add_to_memory(user_msg: str, bot_msg: str, session_id: str = "default"):
         bot_msg: The bot's response
         session_id: Optional session identifier for multi-user support
     """
+    # Update local deque
+    chat_history.append({"user": user_msg, "bot": bot_msg})
+    # Persist to SQLite
     add_chat_entry(user_msg, bot_msg, session_id)
 
 
@@ -59,6 +62,7 @@ def clear_memory(session_id: str = "default"):
     Args:
         session_id: The session whose history should be cleared
     """
+    chat_history.clear()
     clear_chat_history(session_id)
 
 
@@ -74,12 +78,11 @@ def format_memory(session_id: str = "default") -> str:
         Formatted string of conversation history
     """
     # Get limited history for context (to avoid token overflow)
-    chat_history = get_memory(session_id, MAX_MEMORY if MAX_MEMORY > 0 else None)
+    history = get_memory(session_id, MAX_MEMORY if MAX_MEMORY > 0 else None)
     
-    if not chat_history:
+    if not history:
         return "No previous conversation."
     
-    # Fix the roles: it was showing User as RoastBot and vice versa
     return "\n\n".join(
-        [f"User: {entry['user']}\nRoastBot: {entry['bot']}" for entry in chat_history]
+        [f"User: {entry['user']}\nRoastBot: {entry['bot']}" for entry in history]
     )

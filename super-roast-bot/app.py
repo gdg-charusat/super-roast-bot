@@ -33,9 +33,6 @@ def get_validated_api_key():
 
 GROQ_API_KEY = get_validated_api_key()
 
-if not GROQ_API_KEY:
-    st.warning("⚠️ GROQ_API_KEY is not configured. Please add it to your `.env` file or use the sidebar.")
-
 # ── Configure Groq client (OpenAI-compatible) ──
 if GROQ_API_KEY:
     client = OpenAI(
@@ -85,13 +82,15 @@ def chat_stream(user_input: str):
             if chunk.choices[0].delta.content:
                 yield chunk.choices[0].delta.content
     except Exception as e:
-        yield f"Even I broke trying to roast you. Error: {str(e)[:100]}"
+        error_msg = str(e)
+        if "401" in error_msg or "AuthenticationError" in error_msg or "expired_api_key" in error_msg:
+            yield "❌ Invalid or Expired API Key. Please update the sidebar or your `.env` file."
+        else:
+            yield f"Even I broke trying to roast you. Error: {error_msg[:100]}"
 
 
 def chat(user_input: str) -> str:
     """Generate a roast response for the user's input using structured messages."""
-
-    # used .strip to remove whitespaces 
     if not user_input or user_input.isspace():
         return "You sent me nothing? Even your messages are empty, just like your GitHub contribution graph. 🔥"
 
@@ -99,13 +98,9 @@ def chat(user_input: str) -> str:
         return "⚠️ I can't roast you without an API key. Stop being poor and add one to the sidebar or `.env`. 🔥"
 
     try:
-        # Retrieve relevant roast context via RAG
         context = retrieve_context(user_input)
-
-        # Get conversation history
         history = format_memory(st.session_state.session_id)
-
-        # Build structured messages to avoid prompt injection and instruction mixing
+        
         messages = [
             {
                 "role": "user",
@@ -117,7 +112,6 @@ def chat(user_input: str) -> str:
             },
         ]
 
-        # Generate response from Groq using structured system prompt
         response = client.chat.completions.create(
             model=MODEL_NAME,
             messages=[
@@ -129,7 +123,6 @@ def chat(user_input: str) -> str:
         )
 
         reply = response.choices[0].message.content
-
         return reply
 
     except Exception as e:
@@ -140,10 +133,14 @@ def chat(user_input: str) -> str:
             st.error(f"Error generating roast: {e}")
         return f"Even I broke trying to roast you. Error: {error_msg[:100]}"
 
+
 st.set_page_config(page_title="Super RoastBot", page_icon="🔥", layout="centered")
 
 st.title("🔥Super RoastBot")
 st.caption("I roast harder than your code roasts your CPU")
+
+if not GROQ_API_KEY:
+    st.warning("⚠️ GROQ_API_KEY is not configured. Please add it to your `.env` file or use the sidebar.")
 
 # Sidebar
 with st.sidebar:
@@ -214,8 +211,7 @@ if user_input := st.chat_input("Say something... if you dare 🔥"):
             
             # Store in memory
             add_to_memory(user_input, reply, st.session_state.session_id)
+            st.session_state.messages.append({"role": "assistant", "content": reply})
         except Exception as e:
             reply = f"Even I broke trying to roast you. Error: {e}"
             st.error(reply)
-
-    st.session_state.messages.append({"role": "assistant", "content": reply})
