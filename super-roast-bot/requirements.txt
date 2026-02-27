@@ -1,7 +1,7 @@
-openai
 streamlit
-faiss-cpu
+groq
 python-dotenv
+faiss-cpu
 sentence-transformers
 numpy
 PyPDF2

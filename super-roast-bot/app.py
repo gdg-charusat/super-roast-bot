@@ -30,8 +30,10 @@ from database import (
     clear_chat_history,
 )
 
+# ---------------- Environment ---------------- #
 load_dotenv()
 
+# Initialize OpenAI/Groq client securely
 client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
     api_key=os.getenv("GROQ_KEY"),
