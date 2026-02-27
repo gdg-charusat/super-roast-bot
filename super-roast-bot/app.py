@@ -134,9 +134,6 @@ def chat(user_input: str) -> str:
         return f"Even I broke trying to roast you. Error: {error_msg[:100]}"
 
 
-st.title("🔥Super RoastBot")
-st.caption("I roast harder than your code roasts your CPU")
-
 st.set_page_config(page_title="Super RoastBot", page_icon="🔥", layout="centered")
 st.title("🔥Super RoastBot")
 st.caption("I roast harder than your code roasts your CPU")
@@ -213,83 +210,4 @@ if user_input := st.chat_input("Say something... if you dare 🔥"):
         except Exception as e:
             reply = f"Even I broke trying to roast you. Error: {e}"
             st.error(reply)
-
 st.title("🔥Super RoastBot")
-st.caption("I roast harder than your code roasts your CPU")
-
-if not GROQ_API_KEY:
-    st.warning("⚠️ GROQ_API_KEY is not configured. Please add it to your `.env` file or use the sidebar.")
-
-# Sidebar
-with st.sidebar:
-    st.header("⚙️ Controls")
-    
-    enable_streaming = st.toggle("Enable Streaming", value=True, help="Show responses token-by-token")
-    
-    if st.button("🗑️ Clear Chat"):
-        st.session_state.messages = []
-        clear_memory(st.session_state.session_id)
-        st.success("Chat cleared!")
-        st.rerun()
-
-    st.divider()
-    st.markdown("**🔑 API Key Management**")
-    new_key = st.text_input("Override GROQ_API_KEY", type="password", placeholder="gsk_...")
-    if st.button("Apply Key"):
-        st.session_state.api_key_override = new_key
-        st.rerun()
-    if "api_key_override" in st.session_state and st.session_state.api_key_override:
-        if st.button("Reset to .env Key"):
-            del st.session_state.api_key_override
-            st.rerun()
-    st.divider()
-    st.markdown(
-        "**How it works:**\n"
-        "1. Your message is sent to RAG retrieval\n"
-        "2. Relevant roast knowledge is fetched\n"
-        "3. Groq crafts a personalized roast\n"
-        "4. You cry. Repeat."
-    )
-    st.divider()
-    st.markdown(
-        "**⚙️ Config (env-based):**\n"
-        f"- Model: `{MODEL_NAME}`\n"
-        f"- Temp: `{TEMPERATURE}`\n"
-        f"- Max tokens: `{MAX_TOKENS}`"
-    )
-
-# Initialize session state
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-if "session_id" not in st.session_state:
-    import uuid
-    st.session_state.session_id = str(uuid.uuid4())
-
-# Display chat history
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"], avatar="😈" if msg["role"] == "assistant" else "🤡"):
-        st.markdown(msg["content"])
-
-# Chat input
-if user_input := st.chat_input("Say something... if you dare 🔥"):
-    # Show user message
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    with st.chat_message("user", avatar="🤡"):
-        st.markdown(user_input)
-
-    # Generate roast
-    with st.chat_message("assistant", avatar="😈"):
-        try:
-            if enable_streaming:
-                reply = st.write_stream(chat_stream(user_input))
-            else:
-                with st.spinner("Cooking up a roast... 🍳"):
-                    reply = chat(user_input)
-                    st.markdown(reply)
-            
-            # Store in memory
-            add_to_memory(user_input, reply, st.session_state.session_id)
-            st.session_state.messages.append({"role": "assistant", "content": reply})
-        except Exception as e:
-            reply = f"Even I broke trying to roast you. Error: {e}"
-            st.error(reply)
