@@ -64,3 +64,26 @@ def format_memory() -> List[Dict[str, Any]]:
 def clear_memory() -> None:
     """Wipe all in-memory history."""
     _store.clear()
+
+
+def rehydrate_memory(history_rows: list) -> None:
+    """
+    Populate *_store* from persisted SQLite rows after a server restart.
+
+    Should be called once per session at initialisation time, **only when
+    _store is empty**, so it is safe to call on every Streamlit rerun —
+    subsequent calls are no-ops once the store is non-empty.
+
+    Args:
+        history_rows: List of dicts with keys ``user``, ``bot``, and
+                      (optional) ``importance`` as returned by
+                      ``database.get_chat_history()``.
+    """
+    if _store:
+        # Already populated (e.g. user sent a message earlier in this run)
+        return
+
+    for row in history_rows:
+        importance = int(row.get("importance", 1))
+        _store.append(ScoredMessage(role="user",      content=row["user"], importance=importance))
+        _store.append(ScoredMessage(role="assistant", content=row["bot"],  importance=importance))

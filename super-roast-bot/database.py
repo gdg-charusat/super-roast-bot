@@ -89,11 +89,13 @@ def get_chat_history(session_id: str = "default", limit: Optional[int] = None) -
     Retrieve chat history for a session.
 
     Returns:
-        List of {"user": ..., "bot": ...} dicts in chronological order.
+        List of {"user": ..., "bot": ..., "importance": ...} dicts in
+        chronological order.  The "importance" key is included so callers
+        can reconstruct ScoredMessage objects during memory rehydration.
     """
     with _get_connection() as conn:
         query = """
-            SELECT user_message, bot_response
+            SELECT user_message, bot_response, importance
             FROM chat_history
             WHERE session_id = ?
             ORDER BY timestamp DESC
@@ -102,7 +104,11 @@ def get_chat_history(session_id: str = "default", limit: Optional[int] = None) -
             query += f" LIMIT {limit}"
         rows = conn.execute(query, (session_id,)).fetchall()
         return [
-            {"user": row["user_message"], "bot": row["bot_response"]}
+            {
+                "user": row["user_message"],
+                "bot": row["bot_response"],
+                "importance": row["importance"],
+            }
             for row in reversed(rows)
         ]
 

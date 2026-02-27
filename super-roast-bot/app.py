@@ -18,12 +18,13 @@ from dotenv import load_dotenv
 
 from rag import retrieve_context
 from prompt import SYSTEM_PROMPT
-from memory import add_to_memory, format_memory, clear_memory, get_memory
+from memory import add_to_memory, format_memory, clear_memory, get_memory, rehydrate_memory
 from utils.roast_mode import get_system_prompt, build_adaptive_prompt
 from utils.token_guard import trim_chat_history
 from utils.user_profile import UserProfile
 from database import (
     add_chat_entry,
+    get_chat_history,
     save_user_profile,
     load_user_profile,
     clear_user_profile,
@@ -63,6 +64,44 @@ def _get_profile() -> UserProfile:
         else:
             st.session_state.user_profile = UserProfile()
     return st.session_state.user_profile
+
+
+def _init_session() -> None:
+    """
+    Initialise per-session state on the very first Streamlit run after a
+    server restart.  Subsequent reruns are no-ops thanks to the
+    ``_memory_rehydrated`` guard stored in ``st.session_state``.
+
+    What this does:
+    1. Loads the UserProfile from SQLite (via ``_get_profile()``).
+    2. Fetches the last MAX_MEMORY turns of chat history from SQLite.
+    3. Rehydrates the module-level ``_store`` deque in memory.py with
+       importance-scored ScoredMessage objects so the LLM has context.
+    4. Populates ``st.session_state.messages`` for the chat UI display.
+    """
+    if st.session_state.get("_memory_rehydrated"):
+        return  # Already done this run
+
+    _get_profile()  # Ensure profile is loaded
+
+    sid  = _get_session_id()
+    rows = get_chat_history(sid, limit=20)  # cap matches MAX_MEMORY in memory.py
+
+    # 1. Rehydrate LLM memory store
+    rehydrate_memory(rows)
+
+    # 2. Rehydrate UI message list (only if it hasn't been set yet)
+    if "messages" not in st.session_state:
+        st.session_state.messages = [
+            entry
+            for row in rows
+            for entry in (
+                {"role": "user",      "content": row["user"]},
+                {"role": "assistant", "content": row["bot"]},
+            )
+        ]
+
+    st.session_state["_memory_rehydrated"] = True
 
 
 # ── Core chat function ─────────────────────────────────────────────────────────
@@ -162,6 +201,8 @@ with st.sidebar:
         clear_user_profile(sid)
         if "user_profile" in st.session_state:
             del st.session_state["user_profile"]
+        # Reset the rehydration guard so _init_session() stays clean
+        st.session_state["_memory_rehydrated"] = False
         st.success("Chat cleared!")
         st.rerun()
 
@@ -197,9 +238,8 @@ with st.sidebar:
     )
 
 
-# ── Chat state ─────────────────────────────────────────────────────────────────
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+# ── Session initialisation (rehydrates memory + UI history from SQLite) ────────
+_init_session()
 
 # Display history
 for msg in st.session_state.messages:
