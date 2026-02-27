@@ -3,11 +3,43 @@ Memory Module for RoastBot - Now with SQLite Persistent Storage!
 Chat history persists across server restarts using SQLite database.
 """
 
-MAX_MEMORY = 10
-chat_history = deque(maxlen=MAX_MEMORY)
+import re
+from collections import deque
+from database import add_chat_entry, get_chat_history, clear_chat_history, init_database
 
 # Maximum number of recent messages to include in context (0 = unlimited)
 MAX_MEMORY = 10
+
+# Kept for potential in-memory fallback use
+chat_history = deque(maxlen=MAX_MEMORY)
+
+# Ensure the database table exists before any memory operations
+init_database()
+
+
+def _sanitize(text: str) -> str:
+    """
+    Sanitize text by replacing PII (phone numbers, email addresses) with placeholders.
+
+    Args:
+        text: The raw text to sanitize.
+
+    Returns:
+        Sanitized text with PII replaced.
+    """
+    # Replace phone numbers (e.g. 555-123-4567 / (555) 123-4567 / +1-555-123-4567)
+    text = re.sub(
+        r'(\+?\d[\d\s\-().]{7,}\d)',
+        '[PHONE]',
+        text
+    )
+    # Replace email addresses
+    text = re.sub(
+        r'[\w.+-]+@[\w-]+\.[\w.]+',
+        '[EMAIL]',
+        text
+    )
+    return text
 
 
 def add_to_memory(user_msg: str, bot_msg: str, session_id: str = "default"):

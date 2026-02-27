@@ -1,6 +1,9 @@
 """Quick smoke test runner for RoastBot fixes."""
+import os
 import sys
-sys.path.insert(0, r"c:\Users\Aryan Ghadiya\super-roast-bot\super roast bot")
+# Dynamically resolve the directory containing this script so the test
+# works on any machine regardless of where the repo is cloned.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 def test_prompt():
     """Test prompt sanity."""

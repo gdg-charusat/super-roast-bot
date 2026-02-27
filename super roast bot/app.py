@@ -4,6 +4,7 @@ Built with Streamlit + Groq + FAISS.
 """
 
 import os
+import uuid
 from pathlib import Path
 import streamlit as st
 from openai import OpenAI
@@ -53,8 +54,8 @@ def chat(user_input: str) -> str:
         # Retrieve relevant roast context via RAG
         context = retrieve_context(user_input)
 
-        # Get conversation history
-        history = format_memory()
+        # Get conversation history (scoped to this user's session)
+        history = format_memory(st.session_state.session_id)
 
         # Build structured messages to avoid prompt injection and instruction mixing
         messages = [
@@ -81,8 +82,8 @@ def chat(user_input: str) -> str:
 
         reply = response.choices[0].message.content
 
-        # Store in memory
-        add_to_memory(user_input, reply)
+        # Store in memory (scoped to this user's session)
+        add_to_memory(user_input, reply, st.session_state.session_id)
 
         return reply
 
@@ -100,7 +101,7 @@ with st.sidebar:
     st.header("⚙️ Controls")
     if st.button("🗑️ Clear Chat"):
         st.session_state.messages = []
-        clear_memory()
+        clear_memory(st.session_state.session_id)
         st.success("Chat cleared!")
         st.rerun()
     st.divider()
@@ -122,6 +123,10 @@ with st.sidebar:
 # Initialize session state
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+# Assign a unique session ID per browser tab for multi-user isolation
+if "session_id" not in st.session_state:
+    st.session_state.session_id = str(uuid.uuid4())
 
 # Display chat history
 for msg in st.session_state.messages:
