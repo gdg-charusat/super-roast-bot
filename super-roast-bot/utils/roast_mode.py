@@ -44,3 +44,29 @@ def get_system_prompt(mode: str) -> str:
         System prompt string ready to pass to the LLM.
     """
     return ROAST_MODES.get(mode, ROAST_MODES["Savage 🔥"])
+
+
+def build_adaptive_prompt(base_system_prompt: str, profile_snippet: str) -> str:
+    """
+    Merge the base system prompt with the user profile snippet for adaptive roasting.
+
+    This function injects user profile information into the system prompt so the LLM
+    can deliver personalized, context-aware roasts without explicit instructions.
+
+    Args:
+        base_system_prompt : The mode-specific system prompt (e.g., "Savage 🔥", "Friendly 🙂").
+        profile_snippet    : User profile text from UserProfile.to_prompt_snippet().
+                            Can be empty string if not enough conversation data yet.
+
+    Returns:
+        Merged system prompt ready for the LLM.
+    """
+    if not profile_snippet or profile_snippet.strip() == "":
+        # During early turns, use base prompt as-is
+        return base_system_prompt
+
+    # Inject profile after the main roasting instruction but before sign-off
+    separator = "\n\n--- ADAPTIVE CONTEXT ---\n"
+    adaptive_footer = "\n--- END CONTEXT ---\n"
+
+    return base_system_prompt + separator + profile_snippet + adaptive_footer
