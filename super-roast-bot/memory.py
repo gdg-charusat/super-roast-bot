@@ -1,9 +1,7 @@
 import re
-from collections import deque
 from database import add_chat_entry, get_chat_history, clear_chat_history
 
 MAX_MEMORY = 10
-chat_history = deque(maxlen=MAX_MEMORY)
 
 def _sanitize(text: str) -> str:
     """
@@ -27,8 +25,6 @@ def add_to_memory(user_msg: str, bot_msg: str, session_id: str = "default"):
         bot_msg: The bot's response
         session_id: Optional session identifier for multi-user support
     """
-    # Update local deque
-    chat_history.append({"user": user_msg, "bot": bot_msg})
     # Persist to SQLite
     add_chat_entry(user_msg, bot_msg, session_id)
 
@@ -52,7 +48,6 @@ def clear_memory(session_id: str = "default"):
     Args:
         session_id: The session whose history should be cleared
     """
-    chat_history.clear()
     clear_chat_history(session_id)
 
 def format_memory(session_id: str = "default") -> str:
