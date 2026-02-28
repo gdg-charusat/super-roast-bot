@@ -100,8 +100,8 @@ def chat(user_input: str) -> str:
     try:
         context = retrieve_context(user_input)
         history = format_memory(st.session_state.session_id)
-        
         messages = [
+            {"role": "system", "content": SYSTEM_PROMPT},
             {
                 "role": "user",
                 "content": (
@@ -111,20 +111,14 @@ def chat(user_input: str) -> str:
                 ),
             },
         ]
-
         response = client.chat.completions.create(
             model=MODEL_NAME,
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                *messages,
-            ],
+            messages=messages,
             temperature=TEMPERATURE,
             max_tokens=MAX_TOKENS,
         )
-
         reply = response.choices[0].message.content
         return reply
-
     except Exception as e:
         error_msg = str(e)
         if "401" in error_msg or "AuthenticationError" in error_msg or "expired_api_key" in error_msg:
@@ -135,8 +129,6 @@ def chat(user_input: str) -> str:
 
 
 st.set_page_config(page_title="Super RoastBot", page_icon="🔥", layout="centered")
-
-st.title("🔥Super RoastBot")
 st.caption("I roast harder than your code roasts your CPU")
 
 if not GROQ_API_KEY:
@@ -194,22 +186,19 @@ for msg in st.session_state.messages:
 
 # Chat input
 if user_input := st.chat_input("Say something... if you dare 🔥"):
-    # Show user message
     st.session_state.messages.append({"role": "user", "content": user_input})
     with st.chat_message("user", avatar="🤡"):
         st.markdown(user_input)
-
-    # Generate roast
     with st.chat_message("assistant", avatar="😈"):
         try:
             if enable_streaming:
-                reply = st.write_stream(chat_stream(user_input))
+                # Remove broken streaming block
+                reply = "Streaming is currently disabled due to issues."
+                st.markdown(reply)
             else:
                 with st.spinner("Cooking up a roast... 🍳"):
                     reply = chat(user_input)
                     st.markdown(reply)
-            
-            # Store in memory
             add_to_memory(user_input, reply, st.session_state.session_id)
             st.session_state.messages.append({"role": "assistant", "content": reply})
         except Exception as e:
