@@ -1,11 +1,18 @@
 import os
 import faiss
 import numpy as np
+import threading
 from sentence_transformers import SentenceTransformer
 from PyPDF2 import PdfReader 
 
 DATA_FOLDER = os.path.join(os.path.dirname(__file__), "data")
-EMBEDDING_MODEL = SentenceTransformer("all-MiniLM-L6-v2")
+
+# Thread-safe singleton for RAG components
+_rag_lock = threading.Lock()
+_rag_initialized = False
+_global_chunks = None
+_global_index = None
+_global_model = None
 
 def get_text_from_files():
     all_text = ""
@@ -39,10 +46,23 @@ def build_index(chunks, model):
     index.add(np.array(embeddings).astype("float32"))
     return index, chunks
 
-CHUNKS_LIST = load_and_chunk()
-INDEX, CHUNKS = build_index(CHUNKS_LIST, EMBEDDING_MODEL)
+def _initialize_rag_components():
+    """Thread-safe lazy initialization of RAG components."""
+    global _rag_initialized, _global_chunks, _global_index, _global_model
+    
+    if not _rag_initialized:
+        with _rag_lock:
+            if not _rag_initialized:  # Double-check locking
+                _global_model = SentenceTransformer("all-MiniLM-L6-v2")
+                chunks_list = load_and_chunk()
+                _global_index, _global_chunks = build_index(chunks_list, _global_model)
+                _rag_initialized = True
 
 def retrieve_context(query, top_k=3):
-    query_embedding = EMBEDDING_MODEL.encode([query])
-    _, indices = INDEX.search(np.array(query_embedding).astype("float32"), top_k)
-    return "\n\n".join([CHUNKS[i] for i in indices[0] if i < len(CHUNKS)])
+    """Thread-safe context retrieval with mutex locking."""
+    _initialize_rag_components()
+    
+    with _rag_lock:
+        query_embedding = _global_model.encode([query])
+        _, indices = _global_index.search(np.array(query_embedding).astype("float32"), top_k)
+        return "\n\n".join([_global_chunks[i] for i in indices[0] if i < len(_global_chunks)])
