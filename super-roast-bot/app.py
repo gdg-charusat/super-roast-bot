@@ -17,8 +17,26 @@ client = OpenAI(
     api_key=os.getenv("GROQ_KEY")
 )
 
-TEMPERATURE = 0.8
-MAX_TOKENS = 512
+def parse_env_float(key: str, default: float) -> float:
+    val = os.getenv(key)
+    if not val:
+        return default
+    try:
+        return float(val)
+    except ValueError:
+        return default
+
+def parse_env_int(key: str, default: int) -> int:
+    val = os.getenv(key)
+    if not val:
+        return default
+    try:
+        return int(val)
+    except ValueError:
+        return default
+
+TEMPERATURE = parse_env_float("TEMPERATURE", 0.8)
+MAX_TOKENS = parse_env_int("MAX_TOKENS", 512)
 MODEL_NAME = "llama-3.1-8b-instant"
 
 # ---------------- Session State ---------------- #
