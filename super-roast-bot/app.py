@@ -1,3 +1,14 @@
+"""
+Super RoastBot — app.py (Adaptive Roast Intelligence Edition)
+
+New in this version:
+  • UserProfile tracks skills, weaknesses, themes, and traits per session.
+  • Every user message is scored for importance before being stored.
+  • Scored memory survives token trimming based on importance, not just recency.
+  • System prompt is dynamically augmented with the user's profile snippet.
+  • Profile is persisted to SQLite so it survives page refreshes.
+"""
+
 import os
 import streamlit as st
 from openai import OpenAI
@@ -12,7 +23,7 @@ load_dotenv()
 
 client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
-    api_key=os.getenv("GROQ_KEY")
+    api_key=os.getenv("GROQ_KEY"),
 )
 
 TEMPERATURE = float(os.getenv("TEMPERATURE", 0.8))
@@ -56,7 +67,6 @@ def chat(user_input: str, system_prompt: str = "") -> str:
             temperature=TEMPERATURE,
             max_tokens=MAX_TOKENS,
         )
-
         reply = response.choices[0].message.content
 
         # Save to memory
@@ -91,6 +101,7 @@ with st.sidebar:
     st.divider()
 
     if st.button("🗑️ Clear Chat"):
+        sid = _get_session_id()
         st.session_state.messages = []
         clear_memory()
         st.success("Chat cleared!")
