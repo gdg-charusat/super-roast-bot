@@ -210,4 +210,3 @@ if user_input := st.chat_input("Say something... if you dare 🔥"):
         except Exception as e:
             reply = f"Even I broke trying to roast you. Error: {e}"
             st.error(reply)
-st.title("🔥Super RoastBot")

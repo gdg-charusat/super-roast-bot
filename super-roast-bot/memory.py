@@ -6,6 +6,8 @@ Chat history persists across server restarts using SQLite database.
 import re
 from database import add_chat_entry, get_chat_history, clear_chat_history
 
+MAX_MEMORY = 10
+
 def _sanitize(text: str) -> str:
     """
     Sanitize PII (Phone/Email) from chat messages.
