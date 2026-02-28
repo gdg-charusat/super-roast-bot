@@ -7,5 +7,3 @@ langchain
 tiktoken
 numpy
 PyPDF2
-numpy
-

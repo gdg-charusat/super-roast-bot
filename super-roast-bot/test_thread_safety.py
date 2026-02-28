@@ -5,7 +5,6 @@ Tests concurrent access to FAISS index and embedding model
 
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'super-roast-bot'))
 
 import concurrent.futures
 import threading

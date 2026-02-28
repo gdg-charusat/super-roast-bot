@@ -5,7 +5,6 @@ Run this to verify thread-safety in under 30 seconds
 
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'super-roast-bot'))
 
 import threading
 import time
