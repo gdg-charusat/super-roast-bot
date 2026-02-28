@@ -108,50 +108,103 @@ def _init_session() -> None:
 
 # ── Core chat function ─────────────────────────────────────────────────────────
 
-def chat(user_input: str, base_system_prompt: str = SYSTEM_PROMPT) -> str:
-    """Generate a personalised roast response with adaptive intelligence."""
-
-    # ── Input validation ──────────────────────────────────────────────────────
+def _validate_input(user_input):
+    """
+    Shared input validator.
+    Returns (cleaned_input, error_message_or_None).
+    Caller must return/yield the error string immediately when it is not None.
+    """
     if not user_input or not isinstance(user_input, str):
-        return "You sent me nothing? Even your messages are empty, just like your GitHub contribution graph. 🔥"
-
+        return None, "You sent me nothing? Even your messages are empty, just like your GitHub contribution graph. 🔥"
     user_input = user_input.strip()
-    if not user_input or len(user_input) == 0:
-        return "You sent me nothing? Even your messages are empty, just like your GitHub contribution graph. 🔥"
-
+    if not user_input:
+        return None, "You sent me nothing? Even your messages are empty, just like your GitHub contribution graph. 🔥"
     if len(user_input) > 5000:
-        user_input = user_input[:5000] + "..."
-        return "Wow, you broke the character limit. That's impressive. 🔥 Please send a shorter message."
+        return None, "Wow, you broke the character limit. That's impressive. 🔥 Please send a shorter message."
+    return user_input, None
+
+
+def _build_llm_messages(user_input: str, base_system_prompt: str):
+    """
+    Shared helper used by both chat() and chat_stream().
+    Runs the full adaptive pipeline and returns (messages, importance, profile).
+    """
+    profile    = _get_profile()
+    importance = profile.update(user_input)
+
+    profile_snippet = profile.to_prompt_snippet()
+    system_prompt   = build_adaptive_prompt(base_system_prompt, profile_snippet)
+
+    context       = retrieve_context(user_input)
+    raw_memory    = get_memory()
+    trimmed_dicts = trim_chat_history(raw_memory, max_tokens=3000)
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        *trimmed_dicts,
+        {
+            "role": "user",
+            "content": f"Roast context:\n{context}\n\nCurrent message:\n{user_input}",
+        },
+    ]
+    return messages, importance, profile
+
+
+def chat_stream(user_input: str, base_system_prompt: str = SYSTEM_PROMPT):
+    """
+    Streaming variant — yields text chunks as they arrive from the LLM.
+
+    Uses the identical adaptive-intelligence pipeline as chat():
+      • UserProfile update & importance scoring
+      • Adaptive system-prompt injection
+      • RAG context retrieval
+      • Importance-aware memory trimming
+      • Persists the completed reply to memory + SQLite after streaming ends
+    """
+    user_input, err = _validate_input(user_input)
+    if err:
+        yield err
+        return
 
     try:
-        # ── 1. Score the message and update user profile ───────────────────────
-        profile    = _get_profile()
-        importance = profile.update(user_input)
+        messages, importance, profile = _build_llm_messages(user_input, base_system_prompt)
 
-        # ── 2. Build adaptive system prompt ──────────────────────────────────
-        profile_snippet = profile.to_prompt_snippet()
-        system_prompt   = build_adaptive_prompt(base_system_prompt, profile_snippet)
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=messages,
+            temperature=TEMPERATURE,
+            max_tokens=MAX_TOKENS,
+            stream=True,
+        )
 
-        # ── 3. Retrieve RAG context ───────────────────────────────────────────
-        context = retrieve_context(user_input)
+        reply_parts = []
+        for chunk in response:
+            delta = chunk.choices[0].delta.content
+            if delta:
+                reply_parts.append(delta)
+                yield delta
 
-        # ── 4. Get importance-scored memory and smart-trim it ─────────────────
-        raw_memory    = get_memory()           # list[ScoredMessage]
-        trimmed_dicts = trim_chat_history(raw_memory, max_tokens=3000)
+        # Persist the fully assembled reply after streaming completes
+        reply = "".join(reply_parts)
+        if reply:
+            add_to_memory(user_input, reply, importance=importance)
+            add_chat_entry(user_input, reply, session_id=_get_session_id(), importance=importance)
+            save_user_profile(_get_session_id(), profile.to_dict())
 
-        # ── 5. Assemble messages for the LLM ─────────────────────────────────
-        messages = [
-            {"role": "system", "content": system_prompt},
-            *trimmed_dicts,
-            {
-                "role": "user",
-                "content": (
-                    f"Roast context:\n{context}\n\nCurrent message:\n{user_input}"
-                ),
-            },
-        ]
+    except Exception as e:
+        yield f"Even I broke trying to roast you. Error: {str(e)[:100]}"
 
-        # ── 6. Call the LLM ───────────────────────────────────────────────────
+
+def chat(user_input: str, base_system_prompt: str = SYSTEM_PROMPT) -> str:
+    """Non-streaming variant with full adaptive intelligence."""
+
+    user_input, err = _validate_input(user_input)
+    if err:
+        return err
+
+    try:
+        messages, importance, profile = _build_llm_messages(user_input, base_system_prompt)
+
         response = client.chat.completions.create(
             model=MODEL_NAME,
             messages=messages,
@@ -160,11 +213,8 @@ def chat(user_input: str, base_system_prompt: str = SYSTEM_PROMPT) -> str:
         )
         reply = response.choices[0].message.content
 
-        # ── 7. Persist to in-memory store and SQLite ──────────────────────────
         add_to_memory(user_input, reply, importance=importance)
         add_chat_entry(user_input, reply, session_id=_get_session_id(), importance=importance)
-
-        # ── 8. Save updated profile to SQLite every turn ──────────────────────
         save_user_profile(_get_session_id(), profile.to_dict())
 
         return reply
@@ -192,6 +242,12 @@ with st.sidebar:
     )
 
     system_prompt = get_system_prompt(mode)
+
+    enable_streaming = st.toggle(
+        "⚡ Enable Streaming",
+        value=True,
+        help="Stream the roast token-by-token for a dramatic effect 🔥",
+    )
 
     st.divider()
 
@@ -255,8 +311,15 @@ if user_input := st.chat_input("Say something... if you dare 🔥"):
         st.markdown(user_input)
 
     with st.chat_message("assistant", avatar="😈"):
-        with st.spinner("Cooking up a roast... 🍳"):
-            reply = chat(user_input, base_system_prompt=system_prompt)
-            st.markdown(reply)
+        try:
+            if enable_streaming:
+                reply = st.write_stream(chat_stream(user_input, base_system_prompt=system_prompt))
+            else:
+                with st.spinner("Cooking up a roast... 🍳"):
+                    reply = chat(user_input, base_system_prompt=system_prompt)
+                    st.markdown(reply)
+        except Exception as e:
+            reply = f"Even I broke trying to roast you. Error: {e}"
+            st.error(reply)
 
     st.session_state.messages.append({"role": "assistant", "content": reply})
