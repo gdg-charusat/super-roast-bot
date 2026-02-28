@@ -133,8 +133,6 @@ def chat(user_input: str) -> str:
         return f"Even I broke trying to roast you. Error: {error_msg[:100]}"
 
 
-st.title("🔥Super RoastBot")
-st.caption("I roast harder than your code roasts your CPU")
 st.set_page_config(page_title="Super RoastBot", page_icon="🔥", layout="centered")
 st.title("🔥Super RoastBot")
 st.caption("I roast harder than your code roasts your CPU")
@@ -203,10 +201,7 @@ if user_input := st.chat_input("Say something... if you dare 🔥"):
     with st.chat_message("assistant", avatar="😈"):
         try:
             if enable_streaming:
-                reply = ""
-                for token in chat_stream(user_input):
-                    reply += token
-                    st.markdown(token, unsafe_allow_html=True)
+                reply = st.write_stream(chat_stream(user_input))
             else:
                 with st.spinner("Cooking up a roast... 🍳"):
                     reply = chat(user_input)
