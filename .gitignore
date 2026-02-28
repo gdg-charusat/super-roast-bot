@@ -2,6 +2,10 @@
 .env
 super-roast-bot/.env
 
+# VS Code/IDE
+.vscode/
+.idea/
+
 # Python
 __pycache__/
 *.py[cod]
@@ -15,6 +19,8 @@ build/
 .venv/
 venv/
 env/
+*.safetensors
+*.pt
 
 # Streamlit
 .streamlit/
