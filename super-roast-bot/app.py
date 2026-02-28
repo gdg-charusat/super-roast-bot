@@ -13,9 +13,6 @@ from rag import retrieve_context
 from prompt import SYSTEM_PROMPT
 from memory import add_to_memory, format_memory, clear_memory
 
-# ── Load environment variables from the .env file next to this script ──
-load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)
-# ── Load environment variables from the .env file next to this script ──
 load_dotenv(dotenv_path=Path(__file__).parent / ".env", override=True)
 
 # ── Validate the API key is present and not a placeholder ──
@@ -136,8 +133,9 @@ def chat(user_input: str) -> str:
         return f"Even I broke trying to roast you. Error: {error_msg[:100]}"
 
 
+st.title("🔥Super RoastBot")
+st.caption("I roast harder than your code roasts your CPU")
 st.set_page_config(page_title="Super RoastBot", page_icon="🔥", layout="centered")
-
 st.title("🔥Super RoastBot")
 st.caption("I roast harder than your code roasts your CPU")
 
@@ -205,12 +203,14 @@ if user_input := st.chat_input("Say something... if you dare 🔥"):
     with st.chat_message("assistant", avatar="😈"):
         try:
             if enable_streaming:
-                reply = st.write_stream(chat_stream(user_input))
+                reply = ""
+                for token in chat_stream(user_input):
+                    reply += token
+                    st.markdown(token, unsafe_allow_html=True)
             else:
                 with st.spinner("Cooking up a roast... 🍳"):
                     reply = chat(user_input)
                     st.markdown(reply)
-            
             # Store in memory
             add_to_memory(user_input, reply, st.session_state.session_id)
             st.session_state.messages.append({"role": "assistant", "content": reply})
