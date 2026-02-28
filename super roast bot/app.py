@@ -94,6 +94,66 @@ def chat(user_input: str, system_prompt: str = SYSTEM_PROMPT) -> str:
 
     return reply
 
+
+def chat_stream(user_input: str, system_prompt: str = SYSTEM_PROMPT):
+    """Generate a streamed roast response for the user's input."""
+
+    if not user_input or user_input.isspace():
+        yield "You sent me nothing? Even your messages are empty, just like your GitHub contribution graph. 🔥"
+        return
+
+    try:
+        # Retrieve relevant roast context via RAG
+        context = retrieve_context(user_input)
+
+        # Get conversation history
+        history = format_memory()
+
+        # Build chat history list for token guard
+        raw_history = [{"content": f"{e}"} for e in history.split("\n\n") if e.strip()]
+
+        # Guard: trim history if it exceeds token budget
+        raw_history = trim_chat_history(raw_history, max_tokens=3000)
+        trimmed_history = "\n\n".join(m["content"] for m in raw_history)
+
+        # Build structured messages to avoid prompt injection and instruction mixing
+        messages = [
+            {
+                "role": "user",
+                "content": (
+                    f"Roast context (from knowledge base):\n{context}\n\n"
+                    f"Recent conversation:\n{trimmed_history}\n\n"
+                    f"Current message: {user_input}"
+                ),
+            },
+        ]
+
+        # Generate response from Groq using structured system prompt
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                *messages,
+            ],
+            temperature=TEMPERATURE,
+            max_tokens=MAX_TOKENS,
+            stream=True,
+        )
+
+        full_reply = ""
+        for chunk in response:
+            if chunk.choices[0].delta.content is not None:
+                content = chunk.choices[0].delta.content
+                full_reply += content
+                yield content
+
+        # Store in memory
+        add_to_memory(user_input, full_reply)
+
+    except Exception as e:
+        st.error(f"Error generating roast: {e}")
+        yield f"Even I broke trying to roast you. Error: {str(e)[:100]}"
+
 st.set_page_config(page_title="Super RoastBot", page_icon="🔥", layout="centered")
 
 st.title("🔥Super RoastBot")
@@ -111,6 +171,10 @@ with st.sidebar:
         help="Choose how hard RoastBot roasts you.",
     )
     system_prompt = get_system_prompt(mode)
+    
+    # ── Streaming toggle ──
+    use_streaming = st.toggle("⚡ Stream Delivery", value=True, help="See the roast typed out in real-time.")
+    
     st.divider()
 
     if st.button("🗑️ Clear Chat"):
@@ -144,8 +208,11 @@ if user_input := st.chat_input("Say something... if you dare 🔥"):
 
     # Generate roast
     with st.chat_message("assistant", avatar="😈"):
-        with st.spinner("Cooking up a roast... 🍳"):
-            reply = chat(user_input, system_prompt=system_prompt)
-            st.markdown(reply)
+        if use_streaming:
+            reply = st.write_stream(chat_stream(user_input, system_prompt=system_prompt))
+        else:
+            with st.spinner("Cooking up a roast... 🍳"):
+                reply = chat(user_input, system_prompt=system_prompt)
+                st.markdown(reply)
 
     st.session_state.messages.append({"role": "assistant", "content": reply})
