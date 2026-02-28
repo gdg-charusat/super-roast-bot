@@ -1,39 +1,134 @@
-You're like a broken API - nobody wants to call you.
+# =============================================================================
+# RoastBot Knowledge Base — Theme-Tagged Roast Corpus
+# Format: [THEME:name] roast text
+# Themes: coding, career, relationships, fitness, gaming, ai_ml, college
+# =============================================================================
 
-Your code is so bad, even Stack Overflow gave up on you.
+# ── CODING ────────────────────────────────────────────────────────────────────
+[THEME:coding] You're like a broken API - nobody wants to call you.
+[THEME:coding] Your code is so bad, even Stack Overflow gave up on you.
+[THEME:coding] I've seen more structure in a bowl of spaghetti than in your codebase.
+[THEME:coding] You're the human equivalent of a 404 error - not found and not missed.
+[THEME:coding] Your programming skills are like Internet Explorer - outdated and nobody uses them.
+[THEME:coding] You write code like you're being paid by the bug.
+[THEME:coding] Your GitHub contributions look like a barcode for disappointment.
+[THEME:coding] You're so slow, you make dial-up internet look fast.
+[THEME:coding] Your code has more issues than a teenager.
+[THEME:coding] You're like a memory leak - you consume resources but provide no value.
+[THEME:coding] Your debugging skills are like a GPS with no signal - completely lost.
+[THEME:coding] You code like you're allergic to documentation.
+[THEME:coding] Your variable names are more confusing than IKEA instructions.
+[THEME:coding] You're the reason why we need code reviews.
+[THEME:coding] Your commits are like your personality - meaningless and frequent.
+[THEME:coding] You write functions longer than a CVS receipt.
+[THEME:coding] Your code is so nested, it needs its own zip code.
+[THEME:coding] You're like a null pointer exception - unexpected and annoying.
+[THEME:coding] Your programming logic is like a maze designed by a drunk person.
+[THEME:coding] You're the human version of deprecated code - still around but nobody wants to use you.
+[THEME:coding] Your pull requests are longer than your attention span.
+[THEME:coding] You push to main so often, the branch protection cries itself to sleep.
+[THEME:coding] Your stack trace is so deep even archaeologists can't find the root cause.
+[THEME:coding] You treat semicolons like optional accessories. They're not, and neither are you.
+[THEME:coding] Your unit tests test nothing. Just like your existence.
 
-I've seen more structure in a bowl of spaghetti than in your codebase.
+# ── CAREER ────────────────────────────────────────────────────────────────────
+[THEME:career] Your resume is longer than your attention span and half as impressive.
+[THEME:career] You've listed 'Microsoft Word' as a skill. Bold choice in every sense.
+[THEME:career] Your LinkedIn headline reads 'visionary' but your boss reads 'liability'.
+[THEME:career] You describe yourself as a 'self-starter' — so why does it take you three alarms to start your day?
+[THEME:career] Your five-year plan ends with 'figuring it out'. Godspeed.
+[THEME:career] You've been an intern so many times, your badge should just say 'permanent temporary'.
+[THEME:career] Your salary expectations and your output are both impressively low.
+[THEME:career] You put 'synergy' and 'leverage' in every email. Your coworkers have a bingo card.
+[THEME:career] You were passed over for promotion so many times the elevator doesn't even stop at your floor.
+[THEME:career] Your performance review said 'meets expectations' — which means even the bar pities you.
+[THEME:career] You call yourself a 'thought leader' but the only thoughts you lead are lunch orders.
+[THEME:career] Your startup idea: an app that tells you what app to build. Peak innovation.
+[THEME:career] You've been laid off so many times LinkedIn sends you 'Now Hiring' notifications as therapy.
+[THEME:career] You network for 40 hours and apply for 4. The math isn't mathing.
+[THEME:career] Your cover letter has a typo in the word 'detail-oriented'. Iconic.
 
-You're the human equivalent of a 404 error - not found and not missed.
+# ── RELATIONSHIPS ─────────────────────────────────────────────────────────────
+[THEME:relationships] Your dating profile says 'fluent in sarcasm'. Your ex says 'fluent in red flags'.
+[THEME:relationships] You've been single so long, IKEA furniture is your longest committed relationship.
+[THEME:relationships] Your crush left you on read. Even autoresponders have better social skills than you.
+[THEME:relationships] You call your ex brave. I call blocking you a reflex.
+[THEME:relationships] Your love language is passive aggression. No wonder your situationship didn't work.
+[THEME:relationships] You said 'I'm not looking for anything serious' and then sobbed watching rom-coms. Relatable but concerning.
+[THEME:relationships] You ghosted someone after three years. That's not ghosting, that's haunting.
+[THEME:relationships] Your family asks why you're still single at every dinner. Even they're tired of your excuses.
+[THEME:relationships] You described your last date as 'vibe-based'. They described it as 'a cautionary tale'.
+[THEME:relationships] You treat your friendships like subscriptions — forget to renew until they cancel on you.
+[THEME:relationships] Your ex moved on so fast, they were engaged before you finished processing what happened.
+[THEME:relationships] You send 'we should catch up' texts with absolutely no intention of catching up.
+[THEME:relationships] Your mom still introduces you as 'my child who's figuring things out'. She's been saying that for seven years.
+[THEME:relationships] You said 'I just need space'. They gave you the whole universe. Congrats on the freedom.
+[THEME:relationships] You're the type to fall in love in DMs then panic-delete the conversation.
 
-Your programming skills are like Internet Explorer - outdated and nobody uses them.
+# ── FITNESS ───────────────────────────────────────────────────────────────────
+[THEME:fitness] You bought a gym membership in January. The staff sent you a 'we miss you' card in February.
+[THEME:fitness] Your workout routine: walk to the fridge and back. You're hitting steps but the wrong ones.
+[THEME:fitness] You called it 'active rest day' four days in a row. That's just called a week.
+[THEME:fitness] You Googled 'how to get abs' and called it cross-training.
+[THEME:fitness] Your protein shake has more personality than your actual sets at the gym.
+[THEME:fitness] You said you'd start after the holidays. It's been three holidays since then.
+[THEME:fitness] You flex in the mirror more than you lift weights. That's not a workout, that's a press conference.
+[THEME:fitness] You describe yourself as 'athletic' because you once jogged to catch a bus.
+[THEME:fitness] Your diet plan: 'I'll eat clean starting Monday'. Every Sunday night since 2022.
+[THEME:fitness] You spent more time choosing gym playlist than actually going to the gym.
+[THEME:fitness] Your step count is lower than your resting heart rate. That's medically alarming.
+[THEME:fitness] You bench press 40 kg and call it 'going heavy'. The weights called it a light warm-up.
+[THEME:fitness] You said 'I do yoga' — you mean you bought the mat and watched two YouTube videos.
+[THEME:fitness] Your gym selfies outnumber your reps 3 to 1. Impressive cardio for your thumb though.
+[THEME:fitness] You told someone you're 'bulking'. They thought you meant your inbox.
 
-You write code like you're being paid by the bug.
+# ── GAMING ────────────────────────────────────────────────────────────────────
+[THEME:gaming] You've been hardstuck in the same rank longer than some countries have existed.
+[THEME:gaming] Your K/D ratio needs a trigger warning.
+[THEME:gaming] You rage-quit so fast your teammates didn't even notice you were there. Which tracks.
+[THEME:gaming] You blame your teammates, your ping, your chair, and your horoscope. Never yourself. Classic.
+[THEME:gaming] You called yourself a 'gamer' based on two hours of Candy Crush per day.
+[THEME:gaming] You stream with three viewers: you, your mom, and a bot that accidentally clicked your link.
+[THEME:gaming] Your character is maxed out. You, on the other hand, peaked at tutorial.
+[THEME:gaming] You bought every battle pass and finished zero of them. Capitalism thanks you.
+[THEME:gaming] You talk about your ranked grind like it's a job. It's not. You're unemployed.
+[THEME:gaming] You called a twelve-year-old a hacker because you lost. They weren't. You just lost.
+[THEME:gaming] You have 800 hours in that game and still don't understand the meta. That's commitment to mediocrity.
+[THEME:gaming] You go to sleep at 4am after losing fifteen consecutive ranked games and describe it as 'grinding'. It's not grinding. It's suffering.
+[THEME:gaming] Your setup cost three grand. Your skill level costs nothing because it's worth nothing.
+[THEME:gaming] You main the most overpowered character and still lose. Talent.
+[THEME:gaming] You said 'I could go pro if I tried'. The pros tried. They didn't need to clarify.
 
-Your GitHub contributions look like a barcode for disappointment.
+# ── AI / ML ───────────────────────────────────────────────────────────────────
+[THEME:ai_ml] You fine-tuned a model on five rows of data and called it production-ready.
+[THEME:ai_ml] Your model has 99% accuracy on the training set and 23% on anything real. You built a very expensive memorizer.
+[THEME:ai_ml] You said 'just throw more layers at it' and now your GPU is filing for workers' comp.
+[THEME:ai_ml] Your neural network has more parameters than your understanding of it.
+[THEME:ai_ml] You call copy-pasting a Jupyter notebook 'research'. Your citations are Stack Overflow and vibes.
+[THEME:ai_ml] Your loss curve is going up. That's not supposed to happen. You made a model that gets worse over time. Impressive.
+[THEME:ai_ml] You describe yourself as an AI engineer because you used ChatGPT to write your README.
+[THEME:ai_ml] Your dataset is 90% duplicates, your labels are wrong, and your accuracy is still somehow 'decent'. That's not ML, that's magic — bad magic.
+[THEME:ai_ml] You used a pretrained model and called it 'my model'. OpenAI would like a word.
+[THEME:ai_ml] You trained on biased data, got biased results, and decided it was a feature.
+[THEME:ai_ml] Your embeddings are vibes. Mathematically undefined but spiritually present.
+[THEME:ai_ml] You said MLOps is overkill and now your model only works on your laptop on a full moon.
+[THEME:ai_ml] You hyperparameter-tuned for three days and got a 0.2% improvement. Science.
+[THEME:ai_ml] You described your model as 'state of the art'. The state of the art called it a baseline.
+[THEME:ai_ml] You told a recruiter you know deep learning. You once read the Wikipedia page. Bold.
 
-You're so slow, you make dial-up internet look fast.
-
-Your code has more issues than a teenager.
-
-You're like a memory leak - you consume resources but provide no value.
-
-Your debugging skills are like a GPS with no signal - completely lost.
-
-You code like you're allergic to documentation.
-
-Your variable names are more confusing than IKEA instructions.
-
-You're the reason why we need code reviews.
-
-Your commits are like your personality - meaningless and frequent.
-
-You write functions longer than a CVS receipt.
-
-Your code is so nested, it needs its own zip code.
-
-You're like a null pointer exception - unexpected and annoying.
-
-Your programming logic is like a maze designed by a drunk person.
-
-You're the human version of deprecated code - still around but nobody wants to use you.
+# ── COLLEGE ───────────────────────────────────────────────────────────────────
+[THEME:college] You've been in college longer than some degrees take to complete. Twice.
+[THEME:college] Your GPA is lower than the number of times you've said 'I'll start studying tomorrow'.
+[THEME:college] You went to three classes this week and called it your most productive week. That's not success, that's a sign.
+[THEME:college] Your assignment was submitted at 11:58 PM and it shows. Every single word of it shows.
+[THEME:college] You told your professor 'my laptop crashed' three semesters in a row. It's not the laptop.
+[THEME:college] Your study group disbanded because you never actually studied. You just ate their snacks.
+[THEME:college] You said 'I work better under pressure' and then did the entire assignment in the last two hours. That's not a study habit, that's a personality disorder.
+[THEME:college] You chose your major based on a personality quiz. It was a BuzzFeed quiz.
+[THEME:college] You asked 'will this be on the exam?' for every concept. The syllabus had feelings and they were hurt.
+[THEME:college] Your notebook is empty but your class group chat is full of 'anyone have notes?'. You are the problem.
+[THEME:college] You spent your tuition money on experiences. The experience was disappointing.
+[THEME:college] You graduated with a degree in something and plans to 'figure it out'. Three years later the figuring continues.
+[THEME:college] Your thesis is twelve pages long because you set the font to 14 and the margins to 1.5. Your committee noticed.
+[THEME:college] You introduced yourself as 'almost done with my degree' for two years running. Almost is doing a lot of heavy lifting.
+[THEME:college] You skipped the lecture but watched the recording at 2x speed. The professor spent 60 minutes on it. You gave it 28. It shows.
