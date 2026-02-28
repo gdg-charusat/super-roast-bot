@@ -4,9 +4,6 @@ Loads roast data, chunks it, embeds it, and retrieves relevant
 context for each user query using FAISS.
 """
 import os
-import faiss
-import numpy as np
-from sentence_transformers import SentenceTransformer
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "data", "roast_data.txt")
 EMBEDDING_MODEL_NAME = "all-MiniLM-L6-v2"
@@ -18,10 +15,23 @@ _index = None
 
 
 def _get_embedding_model():
-    """Lazy-load embedding model on first use."""
+    """Lazy-load embedding model on first use.
+
+    This wraps the heavyweight `SentenceTransformer` import so importing this
+    module doesn't crash on systems without that dependency. If the model
+    cannot be imported, we return `None` and callers should handle graceful
+    fallback.
+    """
     global _embedding_model
     if _embedding_model is None:
-        _embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
+        try:
+            from sentence_transformers import SentenceTransformer
+
+            _embedding_model = SentenceTransformer(EMBEDDING_MODEL_NAME)
+        except Exception as e:
+            # Model not available (environment may not have sentence-transformers)
+            print(f"SentenceTransformer not available: {e}")
+            _embedding_model = None
     return _embedding_model
 
 
@@ -81,17 +91,48 @@ def _build_index(chunks: list[str] = None, embedding_model=None) -> tuple:
     """Build a FAISS index from text chunks."""
     if chunks is None:
         chunks = load_and_chunk(DATA_PATH)
-    
+
+    # Attempt to import FAISS and numpy locally so module import doesn't fail
+    try:
+        import numpy as np
+        import faiss
+    except Exception as e:
+        print(f"FAISS or numpy not available: {e}. Returning empty index.")
+        empty_embeddings = None
+        try:
+            # fallback: create a minimal numpy-like array shape if numpy available
+            import numpy as _np
+
+            empty_embeddings = _np.zeros((1, 384)).astype("float32")
+            index = None
+            try:
+                import faiss as _faiss
+
+                index = _faiss.IndexFlatL2(384)
+                index.add(empty_embeddings)
+            except Exception:
+                index = None
+        except Exception:
+            index = None
+        return chunks, index
+
     if not chunks:
         print("Warning: No chunks to index. Creating empty index.")
-        # Return empty index for graceful fallback
-        empty_embeddings = np.zeros((1, 384)).astype("float32")  # MiniLM-L6-v2 has 384 dims
+        empty_embeddings = np.zeros((1, 384)).astype("float32")
         index = faiss.IndexFlatL2(384)
         index.add(empty_embeddings)
         return chunks, index
 
     if embedding_model is None:
         embedding_model = _get_embedding_model()
+
+    if embedding_model is None:
+        # Embedding model not available; return empty/placeholder index
+        print("Embedding model not available; returning empty index.")
+        empty_embeddings = np.zeros((1, 384)).astype("float32")
+        index = faiss.IndexFlatL2(384)
+        index.add(empty_embeddings)
+        return chunks, index
 
     try:
         embeddings = embedding_model.encode(chunks, batch_size=32)
@@ -100,7 +141,6 @@ def _build_index(chunks: list[str] = None, embedding_model=None) -> tuple:
         return chunks, index
     except Exception as e:
         print(f"Error building FAISS index: {e}. Returning empty index.")
-        # Graceful fallback
         chunks = []
         empty_embeddings = np.zeros((1, 384)).astype("float32")
         index = faiss.IndexFlatL2(384)
@@ -123,10 +163,12 @@ def retrieve_context(query: str, top_k: int = 3) -> str:
         chunks, index = _get_index()
         embedding_model = _get_embedding_model()
 
-        if not chunks or index.ntotal == 0:
+        if not chunks or index is None or (hasattr(index, "ntotal") and index.ntotal == 0):
             return "No roast context available. I'll roast from pure instinct."
 
         query_embedding = embedding_model.encode([query])
+        import numpy as np
+
         distances, indices = index.search(
             np.array(query_embedding).astype("float32"), 
             min(top_k, len(chunks))

@@ -45,13 +45,17 @@ def _sanitize(text: str) -> str:
 def add_to_memory(user_msg: str, bot_msg: str, session_id: str = "default"):
     """
     Add a user-bot exchange to persistent memory (SQLite database).
-    
+    Sanitizes user and bot text to remove PII before persisting.
+
     Args:
         user_msg: The user's message
         bot_msg: The bot's response
         session_id: Optional session identifier for multi-user support
     """
-    add_chat_entry(user_msg, bot_msg, session_id)
+    # Sanitize PII before writing to storage
+    safe_user = _sanitize(user_msg) if isinstance(user_msg, str) else user_msg
+    safe_bot = _sanitize(bot_msg) if isinstance(bot_msg, str) else bot_msg
+    add_chat_entry(safe_user, safe_bot, session_id)
 
 
 def get_memory(session_id: str = "default", limit: int = None) -> list:
@@ -99,23 +103,3 @@ def format_memory(session_id: str = "default") -> str:
     return "\n\n".join(
         [f"User: {entry['user']}\nRoastBot: {entry['bot']}" for entry in chat_history]
     )
-from collections import deque
-
-MAX_MEMORY = 10 
-chat_history = deque(maxlen=MAX_MEMORY)
-
-def add_to_memory(user_msg: str, bot_msg: str):
-    chat_history.append({"user": user_msg, "bot": bot_msg})
-
-def get_memory() -> list:
-    return list(chat_history)
-
-def format_memory() -> str:
-    if not chat_history:
-        return "No previous conversation."
-    return "\n\n".join(
-        [f"User: {entry['user']}\nAssistant: {entry['bot']}" for entry in chat_history]
-    )
-
-def clear_memory():
-    chat_history.clear()
