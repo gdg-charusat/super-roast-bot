@@ -1,6 +1,10 @@
-# Environment variables — never commit real secrets
+# Environment variables
 .env
 super-roast-bot/.env
+
+# VS Code/IDE
+.vscode/
+.idea/
 
 # Python
 __pycache__/
