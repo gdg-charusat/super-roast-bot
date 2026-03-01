@@ -8,7 +8,6 @@ from pathlib import Path
 import streamlit as st
 from openai import OpenAI
 from dotenv import load_dotenv
-
 from rag import retrieve_context
 from prompt import SYSTEM_PROMPT
 from memory import add_to_memory, format_memory, clear_memory
@@ -59,19 +58,16 @@ def chat_stream(user_input: str):
     try:
         context = retrieve_context(user_input)
         history = format_memory(st.session_state.session_id)
-        
-        messages = [{
-            "role": "user",
-            "content": (
-                f"Roast context (from knowledge base):\n{context}\n\n"
-                f"Recent conversation:\n{history}\n\n"
-                f"Current message: {user_input}"
-            ),
-        }]
-        
         response = client.chat.completions.create(
             model=MODEL_NAME,
-            messages=[{"role": "system", "content": SYSTEM_PROMPT}, *messages],
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": (
+                    f"Roast context (from knowledge base):\n{context}\n\n"
+                    f"Recent conversation:\n{history}\n\n"
+                    f"Current message: {user_input}"
+                )},
+            ],
             temperature=TEMPERATURE,
             max_tokens=MAX_TOKENS,
             stream=True
@@ -100,22 +96,15 @@ def chat(user_input: str) -> str:
         context = retrieve_context(user_input)
         history = format_memory(st.session_state.session_id)
         
-        messages = [
-            {
-                "role": "user",
-                "content": (
-                    f"Roast context (from knowledge base):\n{context}\n\n"
-                    f"Recent conversation:\n{history}\n\n"
-                    f"Current message: {user_input}"
-                ),
-            },
-        ]
-
         response = client.chat.completions.create(
             model=MODEL_NAME,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
-                *messages,
+                {"role": "user", "content": (
+                    f"Roast context (from knowledge base):\n{context}\n\n"
+                    f"Recent conversation:\n{history}\n\n"
+                    f"Current message: {user_input}"
+                )},
             ],
             temperature=TEMPERATURE,
             max_tokens=MAX_TOKENS,

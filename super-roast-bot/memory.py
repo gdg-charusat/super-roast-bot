@@ -1,20 +1,5 @@
-import re
 from database import add_chat_entry, get_chat_history, clear_chat_history
-
 MAX_MEMORY = 10
-
-def _sanitize(text: str) -> str:
-    """
-    Sanitize PII (Phone/Email) from chat messages.
-    """
-    if not text:
-        return ""
-    # Simple regex for demo/smoke test purposes
-    # Replace email-like patterns
-    text = re.sub(r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+', '[EMAIL]', text)
-    # Replace phone-like patterns (e.g., 555-123-4567)
-    text = re.sub(r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b', '[PHONE]', text)
-    return text.strip()
 
 def add_to_memory(user_msg: str, bot_msg: str, session_id: str = "default"):
     """
@@ -25,7 +10,6 @@ def add_to_memory(user_msg: str, bot_msg: str, session_id: str = "default"):
         bot_msg: The bot's response
         session_id: Optional session identifier for multi-user support
     """
-    # Persist to SQLite
     add_chat_entry(user_msg, bot_msg, session_id)
 
 def get_memory(session_id: str = "default", limit: int = None) -> list:

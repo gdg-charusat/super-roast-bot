@@ -1,7 +1,7 @@
 ## Team Number: T066
 
 ## Description
-This PR upgrades the RAG (Retrieval-Augmented Generation) system to support multi-format knowledge ingestion. Previously, the bot was limited to a single hardcoded text file. This enhancement allows the bot to dynamically read, chunk, and index all `.txt` and `.pdf` files within the data directory, significantly expanding its "roast knowledge" capabilities.
+This PR upgrades the RAG (Retrieval-Augmented Generation) system to support multi-format knowledge ingestion and aligns the bot to use the Groq API (OpenAI-compatible client) for chat completions. Previously, the bot was limited to a single hardcoded text file. This enhancement allows the bot to dynamically read, chunk, and index all `.txt` and `.pdf` files within the data directory, significantly expanding its "roast knowledge" capabilities. The SDK choice is now Groq (OpenAI-compatible), as reflected in the codebase.
 
 ## Related Issue
 Closes #[INSERT NEW ISSUE NUMBER HERE] 
