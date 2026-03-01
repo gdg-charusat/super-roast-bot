@@ -5,6 +5,11 @@ import os
 # Dynamic path resolution
 current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, current_dir)
+import os
+import sys
+# Dynamically resolve the directory containing this script so the test
+# works on any machine regardless of where the repo is cloned.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 def test_prompt():
     """Test prompt sanity."""
@@ -16,6 +21,11 @@ def test_prompt():
     
     assert "roast" in SYSTEM_PROMPT.lower(), "[ERROR] Roasting role not defined"
     print("[PASS] Roasting role clearly defined")
+    assert "NEVER roast" not in SYSTEM_PROMPT, "❌ 'NEVER roast' still present"
+    print("✓ No contradictory 'NEVER roast' rule")
+    
+    assert "roast" in SYSTEM_PROMPT.lower(), "❌ Roasting role not defined"
+    print("✓ Roasting role clearly defined")
     print()
 
 def test_memory():
@@ -27,6 +37,8 @@ def test_memory():
     sanitized = _sanitize("Call 555-123-4567 or email test@example.com")
     assert "[PHONE]" in sanitized and "[EMAIL]" in sanitized, "[ERROR] PII not sanitized"
     print(f"[PASS] PII sanitization works: {sanitized[:60]}...")
+    assert "[PHONE]" in sanitized and "[EMAIL]" in sanitized, "❌ PII not sanitized"
+    print(f"✓ PII sanitization works: {sanitized[:60]}...")
     
     # Test formatting
     clear_memory()
@@ -35,12 +47,17 @@ def test_memory():
     assert "User: hello" in formatted, "[ERROR] User label missing"
     assert "RoastBot: boring response" in formatted, "[ERROR] RoastBot label missing"
     print("[PASS] Memory formatting correct (User/RoastBot order)")
+    assert "User: hello" in formatted, "❌ User label missing"
+    assert "RoastBot: boring response" in formatted, "❌ RoastBot label missing"
+    print("✓ Memory formatting correct (User/RoastBot order)")
     
     # Test multi-turn
     add_to_memory("second", "roast2")
     multi = format_memory()
     assert "User: hello" in multi and "User: second" in multi, "[ERROR] Multi-turn history broken"
     print("[PASS] Multi-turn history preserved")
+    assert "User: hello" in multi and "User: second" in multi, "❌ Multi-turn history broken"
+    print("✓ Multi-turn history preserved")
     print()
 
 def test_rag():
@@ -58,6 +75,14 @@ def test_rag():
         print("  The code is ready; this is an environment limitation.")
     except Exception as e:
         print(f"[ERROR] RAG failed: {e}")
+        assert isinstance(result, str) and len(result) > 0, "❌ RAG returned invalid result"
+        print(f"✓ RAG fallback works: '{result[:50]}'")
+    except ImportError as e:
+        print(f"⚠ SKIPPED: FAISS not available on this system ({e})")
+        print("  Note: RAG functionality requires faiss-cpu to be properly installed.")
+        print("  The code is ready; this is an environment limitation.")
+    except Exception as e:
+        print(f"❌ RAG failed: {e}")
         raise
     print()
 
@@ -74,6 +99,13 @@ if __name__ == "__main__":
         sys.exit(1)
     except Exception as e:
         print(f"\n[FATAL] UNEXPECTED ERROR: {e}")
+        print("✓ ALL SMOKE TESTS PASSED")
+        print("=" * 50)
+    except AssertionError as e:
+        print(f"\n❌ TEST FAILED: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n❌ UNEXPECTED ERROR: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
