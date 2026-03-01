@@ -5,3 +5,5 @@ faiss-cpu
 sentence-transformers
 numpy
 PyPDF2
+langchain
+tiktoken

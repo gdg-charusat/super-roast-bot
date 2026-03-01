@@ -13,7 +13,7 @@ import os
 import uuid
 
 import streamlit as st
-from openai import OpenAI
+from groq import Groq
 from dotenv import load_dotenv
 
 from rag import retrieve_context
@@ -33,11 +33,8 @@ from database import (
 # ---------------- Environment ---------------- #
 load_dotenv()
 
-# Initialize OpenAI/Groq client securely
-client = OpenAI(
-    base_url="https://api.groq.com/openai/v1",
-    api_key=os.getenv("GROQ_KEY"),
-)
+# Initialize Groq client
+client = Groq(api_key=os.getenv("GROQ_KEY"))
 
 TEMPERATURE = float(os.getenv("TEMPERATURE", 0.8))
 MAX_TOKENS  = int(os.getenv("MAX_TOKENS", 512))
@@ -148,8 +145,7 @@ def chat_stream(user_input: str, base_system_prompt: str = SYSTEM_PROMPT):
         # Persist the fully assembled reply after streaming completes
         reply = "".join(reply_parts)
         if reply:
-            add_to_memory(user_input, reply, importance=importance)
-            add_chat_entry(user_input, reply, session_id=_get_session_id(), importance=importance)
+            add_to_memory(user_input, reply, session_id=_get_session_id(), importance=importance)
             save_user_profile(_get_session_id(), profile.to_dict())
 
     except Exception as e:
@@ -174,8 +170,7 @@ def chat(user_input: str, base_system_prompt: str = SYSTEM_PROMPT) -> str:
         )
         reply = response.choices[0].message.content
 
-        add_to_memory(user_input, reply, importance=importance)
-        add_chat_entry(user_input, reply, session_id=_get_session_id(), importance=importance)
+        add_to_memory(user_input, reply, session_id=_get_session_id(), importance=importance)
         save_user_profile(_get_session_id(), profile.to_dict())
 
         return reply
