@@ -5,3 +5,5 @@ python-dotenv
 faiss-cpu
 sentence-transformers
 numpy
+PyPDF2
+tiktoken
