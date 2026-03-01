@@ -59,10 +59,12 @@ def _initialize_rag_components():
                 _rag_initialized = True
 
 def retrieve_context(query, top_k=3):
-    """Fully concurrent context retrieval - no locks in query path."""
+    """Thread-safe context retrieval - lock only for encoding."""
     _initialize_rag_components()
     
-    # Both encode and search run without locks - fully concurrent
-    query_embedding = _global_model.encode([query])
+    # Encode with lock, search without (FAISS reads are thread-safe)
+    with _rag_lock:
+        query_embedding = _global_model.encode([query])
+    
     _, indices = _global_index.search(np.array(query_embedding).astype("float32"), top_k)
     return "\n\n".join([_global_chunks[i] for i in indices[0] if i < len(_global_chunks)])
