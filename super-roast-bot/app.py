@@ -14,12 +14,12 @@ import uuid
 from pathlib import Path
 
 import streamlit as st
-from openai import OpenAI
+from groq import Groq
 from dotenv import load_dotenv
 
 from rag import retrieve_context
 from prompt import SYSTEM_PROMPT
-from memory import add_to_memory, format_memory, clear_memory, get_memory, rehydrate_memory
+from memory import add_to_memory, format_memory, clear_memory, get_memory
 from utils.roast_mode import get_system_prompt, build_adaptive_prompt
 from utils.token_guard import trim_chat_history
 from utils.user_profile import UserProfile
@@ -52,11 +52,8 @@ if not GROQ_API_KEY or GROQ_API_KEY.strip() in ("", "YOUR API KEY", "your_groq_a
     )
     st.stop()
 
-# Initialize OpenAI/Groq client securely
-client = OpenAI(
-    base_url="https://api.groq.com/openai/v1",
-    api_key=GROQ_API_KEY,
-)
+# Initialize Groq client
+client = Groq(api_key=GROQ_API_KEY)
 
 TEMPERATURE = float(os.getenv("TEMPERATURE", 0.8))
 MAX_TOKENS  = int(os.getenv("MAX_TOKENS", 512))
@@ -95,9 +92,7 @@ def _init_session() -> None:
     What this does:
     1. Loads the UserProfile from SQLite (via ``_get_profile()``).
     2. Fetches the last MAX_MEMORY turns of chat history from SQLite.
-    3. Rehydrates the module-level ``_store`` deque in memory.py with
-       importance-scored ScoredMessage objects so the LLM has context.
-    4. Populates ``st.session_state.messages`` for the chat UI display.
+    3. Populates ``st.session_state.messages`` for the chat UI display.
     """
     if st.session_state.get("_memory_rehydrated"):
         return  # Already done this run
@@ -105,12 +100,9 @@ def _init_session() -> None:
     _get_profile()  # Ensure profile is loaded
 
     sid  = _get_session_id()
-    rows = get_chat_history(sid, limit=20)  # cap matches MAX_MEMORY in memory.py
+    rows = get_chat_history(sid, limit=20)
 
-    # 1. Rehydrate LLM memory store
-    rehydrate_memory(rows)
-
-    # 2. Rehydrate UI message list (only if it hasn't been set yet)
+    # Rehydrate UI message list (only if it hasn't been set yet)
     if "messages" not in st.session_state:
         st.session_state.messages = [
             entry
@@ -205,8 +197,7 @@ def chat_stream(user_input: str, base_system_prompt: str = SYSTEM_PROMPT):
         # Persist the fully assembled reply after streaming completes
         reply = "".join(reply_parts)
         if reply:
-            add_to_memory(user_input, reply, importance=importance)
-            add_chat_entry(user_input, reply, session_id=_get_session_id(), importance=importance)
+            add_to_memory(user_input, reply, session_id=_get_session_id(), importance=importance)
             save_user_profile(_get_session_id(), profile.to_dict())
 
     except Exception as e:
@@ -231,8 +222,7 @@ def chat(user_input: str, base_system_prompt: str = SYSTEM_PROMPT) -> str:
         )
         reply = response.choices[0].message.content
 
-        add_to_memory(user_input, reply, importance=importance)
-        add_chat_entry(user_input, reply, session_id=_get_session_id(), importance=importance)
+        add_to_memory(user_input, reply, session_id=_get_session_id(), importance=importance)
         save_user_profile(_get_session_id(), profile.to_dict())
 
         return reply
